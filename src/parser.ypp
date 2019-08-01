@@ -1,0 +1,28 @@
+%{
+
+#include <iostream>
+#include <string>
+#include "llvm/IR/Verifier.h"
+
+void yyerror(std::string msg) {
+    std::cerr << msg << std::endl;
+    exit(EXIT_FAILURE);
+}
+
+extern int yylex();
+
+%}
+
+%%
+Program: Program ';' Statement
+| Statement ';'
+;
+
+Statement: ' ';
+%%
+
+int main() {
+  yyparse();
+  return 0;
+}
+
