@@ -2,7 +2,6 @@
 
 #include <iostream>
 #include <string>
-#include "llvm/IR/Verifier.h"
 
 void yyerror(std::string msg) {
     std::cerr << msg << std::endl;
@@ -13,12 +12,44 @@ extern int yylex();
 
 %}
 
+%union {
+    std::string* string_value;
+    double double_value;
+}
+
+%left '+' '-'
+%left '*' '/'
+
+%token val_token var_token
+%token <string_value> id_token
+%token <double_value> num_token
+
 %%
 Program: Program ';' Statement
 | Statement ';'
 ;
 
-Statement: ' ';
+Statement: AssignStatement;
+
+AssignStatement:
+    val_token id_token '=' E;
+
+E:
+    E '+' E
+  | E '-' E
+  | E '*' E
+  | E '/' E
+  | '(' E ')'
+  | id_token
+  | num_token
+  | id_token '(' ArgArray ')'
+  ;
+
+ArgArray: 
+    ArgArray ',' E
+  | E
+  ;
+
 %%
 
 int main() {
