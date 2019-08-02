@@ -23,10 +23,13 @@ add_flex_bison_dependency(MyLexer MyParser)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 add_executable(kotlin-llvm
         ${BISON_MyParser_OUTPUTS}
-        ${FLEX_MyLexer_OUTPUTS})
+        ${FLEX_MyLexer_OUTPUTS}
+        src/ast.cpp
+        src/ast.hpp)
 
 # Link against LLVM libraries
 target_link_libraries(kotlin-llvm ${llvm_libs})

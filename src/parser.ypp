@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include "ast.hpp"
 
 void yyerror(std::string msg) {
     std::cerr << msg << std::endl;
@@ -15,6 +16,7 @@ extern int yylex();
 %union {
     std::string* string_value;
     double double_value;
+    ExprAST* expr_t;
 }
 
 %left '+' '-'
@@ -23,6 +25,8 @@ extern int yylex();
 %token val_token var_token
 %token <string_value> id_token
 %token <double_value> num_token
+
+%type <expr_t> E 
 
 %%
 Program: Program ';' Statement
@@ -35,13 +39,28 @@ AssignStatement:
     val_token id_token '=' E;
 
 E:
-    E '+' E
-  | E '-' E
-  | E '*' E
-  | E '/' E
-  | '(' E ')'
-  | id_token
-  | num_token
+  E '+' E {
+    $$ = new AddExprAST($1, $3);
+  }
+  | E '-' E {
+    $$ = new SubExprAST($1, $3);
+  }
+  | E '*' E {
+    $$ = new MulExprAST($1, $3);
+  }
+  | E '/' E {
+    $$ = new DivExprAST($1, $3);
+  }
+  | '(' E ')' {
+    $$ = $2;
+  }
+  | id_token {
+    $$ = new VarExprAST(*$1);
+    delete $1;
+  }
+  | num_token {
+    $$ = new ConstExprAST($1);
+  }
   | id_token '(' ArgArray ')'
   ;
 
