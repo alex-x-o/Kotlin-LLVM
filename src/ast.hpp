@@ -2,6 +2,7 @@
 #define KOTLIN_LLVM_AST_HPP
 
 #include <utility>
+#include <vector>
 
 #include "llvm/IR/Value.h"
 
@@ -57,6 +58,28 @@ class DivExprAST : public BinaryExprAST {
 public:
     DivExprAST(ExprAST* first, ExprAST* second) : BinaryExprAST(first, second) {};
     llvm::Value* codegen() override;
+};
+
+class FunctionAST {
+public:
+    FunctionAST(std::string id, std::vector<std::string> params, ExprAST* body) :
+    _id(std::move(id)), _params(std::move(params)), _body(body)  {};
+    llvm::Function* codegen();
+
+private:
+    std::string _id;
+    std::vector<std::string> _params;
+    ExprAST* _body;
+};
+
+class CallExprAST : public ExprAST {
+public:
+    explicit CallExprAST(std::string callee_id, std::vector<ExprAST *> args) : _callee_id(std::move(callee_id)),
+                                                                               _args(std::move(args)) {};
+    llvm::Value* codegen() override;
+private:
+    std::string _callee_id;
+    std::vector<ExprAST*> _args;
 };
 
 #endif //KOTLIN_LLVM_AST_HPP

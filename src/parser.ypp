@@ -1,8 +1,16 @@
 %{
 
 #include <iostream>
+#include <cstdlib>
 #include <string>
 #include "ast.hpp"
+
+#include "llvm/IR/Value.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/Verifier.h"
+
+extern FILE* yyin;
 
 void yyerror(std::string msg) {
     std::cerr << msg << std::endl;
@@ -17,26 +25,48 @@ extern int yylex();
     std::string* string_value;
     double double_value;
     ExprAST* expr_t;
+    llvm::Function* func_t;
+    std::vector<std::string>* str_vec;
+    std::vector<ExprAST*>* expr_vec;
 }
 
 %left '+' '-'
 %left '*' '/'
 
-%token val_token var_token
+%token val_token var_token fun_token
 %token <string_value> id_token
 %token <double_value> num_token
 
-%type <expr_t> E 
+%type <expr_t> E
+%type <str_vec> ParamArray
+%type <expr_vec> ArgArray
 
 %%
-Program: Program ';' Statement
+Program: Statement ';' Program
 | Statement ';'
+|
 ;
 
-Statement: AssignStatement;
+Statement:
+      AssignStatement
+    | FunctionDefStatement
+    | FunctionCallStatement
+    ;
 
 AssignStatement:
     val_token id_token '=' E;
+
+FunctionDefStatement: fun_token id_token '(' ParamArray ')' '=' E {
+    FunctionAST* function = new FunctionAST(*$2, *$4, $7);
+    function->codegen();
+    delete function;
+    delete $2;
+    delete $4;
+};
+
+FunctionCallStatement: id_token '(' ArgArray ')' {
+
+}
 
 E:
   E '+' E {
@@ -61,18 +91,49 @@ E:
   | num_token {
     $$ = new ConstExprAST($1);
   }
-  | id_token '(' ArgArray ')'
-  ;
 
 ArgArray: 
-    ArgArray ',' E
-  | E
+    ArgArray ',' E {
+        $$ = $1;
+        $$->push_back($3);
+    }
+  | E {
+    $$ = new std::vector<ExprAST*>();
+    $$->push_back($1);
+  }
+  | {
+    $$ = new std::vector<ExprAST*>();
+  }
   ;
+
+ParamArray:
+    ParamArray ',' id_token {
+        $$ = $1;
+        $$->push_back(*$3);
+        delete $3;
+    }
+    | id_token {
+        $$ = new std::vector<std::string>();
+        $$->push_back(*$1);
+        delete $1;
+    }
+    | {
+        $$ = new std::vector<std::string>();
+    }
 
 %%
 
+llvm::LLVMContext context;
+llvm::IRBuilder<> builder(context);
+llvm::Module* module;
+std::map<std::string, llvm::Value*> named_values;
+
 int main() {
-  yyparse();
-  return 0;
+    yyin = fopen("../test.kt", "r");
+    module = new llvm::Module("My module", context);
+    yyparse();
+    module->print(llvm::outs(), nullptr);
+    delete module;
+    return 0;
 }
 
