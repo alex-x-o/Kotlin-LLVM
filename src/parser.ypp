@@ -68,7 +68,10 @@ FunctionDefStatement: fun_token id_token '(' ParamArray ')' '=' E {
 };
 
 FunctionCallStatement: id_token '(' ArgArray ')' {
-
+   CallExprAST* call_expression = new CallExprAST(*$1, *$3);
+   call_expression->codegen();
+   delete $1;
+   delete $3;
 }
 
 E:

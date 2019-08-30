@@ -103,7 +103,7 @@ llvm::Function* FunctionAST::codegen() {
 }
 
 llvm::Value *CallExprAST::codegen() {
-    /* TODO
+
     llvm::Function *callee_function = module->getFunction(_callee_id);
     if (callee_function == nullptr) {
         yyerror("Function " + _callee_id + " doesn't exist");
@@ -115,8 +115,14 @@ llvm::Value *CallExprAST::codegen() {
         yyerror("Wrong number of arguments: " + _callee_id);
     }
 
-    for (int i = 0; i < arg_size; ++i) {
+    std::vector<llvm::Value*> generated_args;
+    for (unsigned i = 0; i < arg_size; ++i) {
+        llvm::Value* arg_value = _args[i]->codegen();
+        if (arg_value == nullptr) {
+            return nullptr;
+        }
+        generated_args.push_back(arg_value);
+    }
 
-    }*/
-    return nullptr;
+    return builder.CreateCall(callee_function, generated_args, "calltmp");
 }
