@@ -42,15 +42,18 @@ extern int yylex();
 %type <expr_vec> ArgArray
 
 %%
-Program: Statement ';' Program
-| Statement ';'
-|
+Program: Statement StatementSeparator Program
+| Statement
 ;
+
+StatementSeparator: ';' | '\n' ;
+
 
 Statement:
       AssignStatement
     | FunctionDefStatement
     | FunctionCallStatement
+    |
     ;
 
 AssignStatement:

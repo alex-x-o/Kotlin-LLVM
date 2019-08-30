@@ -28,9 +28,9 @@
 }
 
 
-[-=(),;+*/{}] return *yytext;
+[-=(),;+*/{}\n] return *yytext;
 
-[ \t\n] {}
+[ \t] {}
 
 . {
   std::cerr << "Lexical error, unknown character: '" << *yytext << "'" << std::endl;
