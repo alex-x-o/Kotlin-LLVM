@@ -36,7 +36,7 @@ extern int yylex();
 %left '+' '-'
 %left '*' '/'
 
-%token val_token var_token fun_token external_token
+%token val_token var_token fun_token external_token return_token
 %token int_type_token double_type_token string_type_token
 %token <string_value> id_token
 %token <double_value> num_token
@@ -68,7 +68,8 @@ AssignStatement:
     val_token id_token '=' E;
 
 FunctionDefStatement: fun_token id_token '(' ParamArray ')' ':' Type '=' E {
-    FunctionAST* function = new FunctionAST(*$2, *$4, $9, $7);
+    ReturnAST* returnAST = new ReturnAST($9);
+    FunctionAST* function = new FunctionAST(*$2, *$4, returnAST, $7);
     function->codegen();
     delete function;
     delete $2;
@@ -115,6 +116,9 @@ E:
   | str_token {
     $$ = new ConstStringExprAST(*$1);
     delete $1;
+  }
+  | return_token E {
+    $$ = new ReturnAST($2);
   };
 
 ArgArray: 

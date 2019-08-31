@@ -117,9 +117,7 @@ llvm::Function* FunctionAST::codegen() {
         named_values[arg.getName()] = &arg;
     }
 
-    if (llvm::Value* value = _body->codegen()) {
-        builder.CreateRet(value);
-    }
+    _body->codegen();
 
     llvm::verifyFunction(*function);
 
@@ -170,4 +168,9 @@ llvm::Value *CallExprAST::codegen() {
     }
 
     return builder.CreateCall(callee_function, generated_args, "calltmp");
+}
+
+llvm::Value* ReturnAST::codegen() {
+    llvm::Value* expression_value = _expr->codegen();
+    return builder.CreateRet(expression_value);
 }

@@ -17,6 +17,8 @@
 "var" return var_token;
 "fun" return fun_token;
 "external" return external_token;
+"return" return return_token;
+
 "Int" return int_type_token; /* Migrate to actual types in the future? */
 "Double" return double_type_token;
 "String" return string_type_token;
