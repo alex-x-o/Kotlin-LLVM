@@ -92,30 +92,6 @@ public:
     llvm::Value* codegen() override;
 };
 
-class FunctionPrototypeAST {
-public:
-    FunctionPrototypeAST(std::string id, std::vector<Param*> params, Type return_type) :
-    _id(std::move(id)), _params(std::move(params)), _return_type(return_type) {};
-    llvm::Function* codegen();
-private:
-    std::string _id;
-    std::vector<Param*> _params;
-    Type _return_type;
-};
-
-class FunctionAST {
-public:
-    FunctionAST(std::string id, std::vector<Param*> params, ExprAST* body, Type return_type) :
-    _id(std::move(id)), _params(std::move(params)), _body(body), _return_type(return_type)  {};
-    llvm::Function* codegen();
-
-private:
-    std::string _id;
-    std::vector<Param*> _params;
-    ExprAST* _body;
-    Type _return_type;
-};
-
 class CallExprAST : public ExprAST {
 public:
     explicit CallExprAST(std::string callee_id, std::vector<ExprAST *> args) : _callee_id(std::move(callee_id)),

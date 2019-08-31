@@ -3,7 +3,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <string>
-#include "ast.hpp"
+#include "sourcetree/ast.hpp"
+#include "sourcetree/statement.hpp"
 
 #include "llvm/IR/Value.h"
 #include "llvm/IR/LLVMContext.h"

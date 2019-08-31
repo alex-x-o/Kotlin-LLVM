@@ -5,7 +5,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include "ast.hpp"
+#include "sourcetree/ast.hpp"
+#include "sourcetree/statement.hpp"
 
 #include "parser.tab.hpp"
 
