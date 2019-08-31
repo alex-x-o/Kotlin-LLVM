@@ -70,7 +70,7 @@ llvm::Value *DivExprAST::codegen() {
 }
 
 llvm::Function* FunctionAST::codegen() {
-    std::vector<llvm::Type *> param_types(_params.size(), llvm::Type::getDoublePtrTy(context));
+    std::vector<llvm::Type *> param_types(_params.size(), llvm::Type::getDoubleTy(context));
     llvm::FunctionType* function_type = llvm::FunctionType::get(llvm::Type::getDoubleTy(context), param_types, false);
 
     llvm::Function *function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, _id, module);
