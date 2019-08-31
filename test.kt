@@ -1,11 +1,9 @@
 val x = 5
 
-fun add(x, y) = x + y
+fun add(x: Int, y: Int): Int = x + y
 
-external fun puts(str)
+external fun puts(str: String): Int
 
 add(5, 10)
 
-fun helloWorld() = "Hello, World"
-
-fun main() = "Hello, World" + 5
+fun main(): String = "Hello, World"

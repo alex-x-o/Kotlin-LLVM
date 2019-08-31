@@ -7,6 +7,29 @@
 
 #include "llvm/IR/Value.h"
 
+enum Type {
+    INT, DOUBLE, STRING
+};
+
+llvm::Type* type_to_llvm_type(Type type);
+
+class Param {
+public:
+    Param(std::string id, Type type) : _id(std::move(id)), _type(type) {};
+
+    const std::string &getId() const {
+        return _id;
+    }
+
+    Type getType() const {
+        return _type;
+    }
+
+private:
+    std::string _id;
+    Type _type;
+};
+
 class ExprAST {
 public:
     virtual ~ExprAST() = default;
@@ -24,7 +47,7 @@ private:
 class ConstStringExprAST : public ExprAST {
 public:
     llvm::Value* codegen() override;
-    explicit ConstStringExprAST(std::string value) : _value(value) {}
+    explicit ConstStringExprAST(std::string value) : _value(std::move(value)) {}
 private:
     std::string _value;
 };
@@ -71,24 +94,26 @@ public:
 
 class FunctionPrototypeAST {
 public:
-    FunctionPrototypeAST(std::string id, std::vector<std::string> params) :
-    _id(std::move(id)), _params(std::move(params)) {};
+    FunctionPrototypeAST(std::string id, std::vector<Param*> params, Type return_type) :
+    _id(std::move(id)), _params(std::move(params)), _return_type(return_type) {};
     llvm::Function* codegen();
 private:
     std::string _id;
-    std::vector<std::string> _params;
+    std::vector<Param*> _params;
+    Type _return_type;
 };
 
 class FunctionAST {
 public:
-    FunctionAST(std::string id, std::vector<std::string> params, ExprAST* body) :
-    _id(std::move(id)), _params(std::move(params)), _body(body)  {};
+    FunctionAST(std::string id, std::vector<Param*> params, ExprAST* body, Type return_type) :
+    _id(std::move(id)), _params(std::move(params)), _body(body), _return_type(return_type)  {};
     llvm::Function* codegen();
 
 private:
     std::string _id;
-    std::vector<std::string> _params;
+    std::vector<Param*> _params;
     ExprAST* _body;
+    Type _return_type;
 };
 
 class CallExprAST : public ExprAST {

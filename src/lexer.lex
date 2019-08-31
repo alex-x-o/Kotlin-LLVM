@@ -17,6 +17,9 @@
 "var" return var_token;
 "fun" return fun_token;
 "external" return external_token;
+"Int" return int_type_token; /* Migrate to actual types in the future? */
+"Double" return double_type_token;
+"String" return string_type_token;
 
 [a-zA-Z_][a-zA-Z_0-9]* {
   yylval.string_value = new std::string(yytext);
@@ -34,7 +37,7 @@
     return str_token;
 }
 
-[-=(),;+*/{}\n] return *yytext;
+[-=(),;+*/{}\n:] return *yytext;
 
 [ \t] {}
 
