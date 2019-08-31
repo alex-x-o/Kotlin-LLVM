@@ -73,6 +73,7 @@ llvm::Value *DivExprAST::codegen() {
     return builder.CreateFDiv(value_first, value_second, "divtmp");
 }
 
+// TODO migrate implementation to reuse FunctionPrototype
 llvm::Function* FunctionAST::codegen() {
     std::vector<llvm::Type *> param_types(_params.size(), llvm::Type::getDoubleTy(context));
     llvm::FunctionType* function_type = llvm::FunctionType::get(llvm::Type::getDoubleTy(context), param_types, false);
@@ -103,6 +104,19 @@ llvm::Function* FunctionAST::codegen() {
 
     llvm::verifyFunction(*function);
 
+    return function;
+}
+
+llvm::Function* FunctionPrototypeAST::codegen() {
+    std::vector<llvm::Type *> param_types(_params.size(), llvm::Type::getDoubleTy(context));
+    llvm::FunctionType* function_type = llvm::FunctionType::get(llvm::Type::getDoubleTy(context), param_types, false);
+
+    llvm::Function *function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, _id, module);
+
+    unsigned i = 0;
+    for (auto &param : function->args()) {
+        param.setName(_params[i++]);
+    }
     return function;
 }
 

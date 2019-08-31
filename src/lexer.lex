@@ -16,6 +16,7 @@
 "val" return val_token;
 "var" return var_token;
 "fun" return fun_token;
+"external" return external_token;
 
 [a-zA-Z_][a-zA-Z_0-9]* {
   yylval.string_value = new std::string(yytext);

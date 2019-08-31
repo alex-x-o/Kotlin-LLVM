@@ -69,6 +69,16 @@ public:
     llvm::Value* codegen() override;
 };
 
+class FunctionPrototypeAST {
+public:
+    FunctionPrototypeAST(std::string id, std::vector<std::string> params) :
+    _id(std::move(id)), _params(std::move(params)) {};
+    llvm::Function* codegen();
+private:
+    std::string _id;
+    std::vector<std::string> _params;
+};
+
 class FunctionAST {
 public:
     FunctionAST(std::string id, std::vector<std::string> params, ExprAST* body) :

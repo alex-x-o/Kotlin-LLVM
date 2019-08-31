@@ -33,7 +33,7 @@ extern int yylex();
 %left '+' '-'
 %left '*' '/'
 
-%token val_token var_token fun_token
+%token val_token var_token fun_token external_token
 %token <string_value> id_token
 %token <double_value> num_token
 %token <string_value> str_token
@@ -53,6 +53,7 @@ StatementSeparator: ';' | '\n' ;
 Statement:
       AssignStatement
     | FunctionDefStatement
+    | ExternalFunctionStatement
     | FunctionCallStatement
     |
     ;
@@ -73,6 +74,13 @@ FunctionCallStatement: id_token '(' ArgArray ')' {
    call_expression->codegen();
    delete $1;
    delete $3;
+}
+
+ExternalFunctionStatement: external_token fun_token id_token '(' ParamArray ')' {
+    FunctionPrototypeAST* prototype = new FunctionPrototypeAST(*$3, *$5);
+    prototype->codegen();
+    delete $3;
+    delete $5;
 }
 
 E:
