@@ -36,6 +36,7 @@ extern int yylex();
 %token val_token var_token fun_token
 %token <string_value> id_token
 %token <double_value> num_token
+%token <string_value> str_token
 
 %type <expr_t> E
 %type <str_vec> ParamArray
@@ -97,6 +98,10 @@ E:
   | num_token {
     $$ = new ConstExprAST($1);
   }
+  | str_token {
+    $$ = new ConstStringExprAST(*$1);
+    delete $1;
+  };
 
 ArgArray: 
     ArgArray ',' E {

@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <vector>
+#include <string>
 
 #include "llvm/IR/Value.h"
 
@@ -18,6 +19,14 @@ public:
     explicit ConstExprAST(double value) : _value(value) {}
 private:
     double _value;
+};
+
+class ConstStringExprAST : public ExprAST {
+public:
+    llvm::Value* codegen() override;
+    explicit ConstStringExprAST(std::string value) : _value(value) {}
+private:
+    std::string _value;
 };
 
 class VarExprAST : public ExprAST {

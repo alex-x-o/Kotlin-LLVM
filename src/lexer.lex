@@ -27,6 +27,11 @@
   return num_token;
 }
 
+\".+?\" {
+    // TODO remove quotemarks
+    yylval.string_value = new std::string(yytext);
+    return str_token;
+}
 
 [-=(),;+*/{}\n] return *yytext;
 

@@ -19,6 +19,10 @@ llvm::Value *ConstExprAST::codegen() {
     return llvm::ConstantFP::get(context, llvm::APFloat(_value));
 }
 
+llvm::Value* ConstStringExprAST::codegen() {
+    builder.CreateGlobalStringPtr(llvm::StringRef(_value));
+}
+
 llvm::Value *VarExprAST::codegen() {
     llvm::Value* value = named_values[_id];
     if (value == nullptr) {
