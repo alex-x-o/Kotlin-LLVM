@@ -54,6 +54,7 @@ extern int yylex();
 %type <func_ast_t> FunctionDefStatement
 %type <func_proto_ast_t> ExternalFunctionStatement
 %type <call_expr_ast_t> FunctionCallStatement
+%type <func_proto_ast_t> FunctionSignature
 
 %%
 Program: StatementList;
@@ -89,11 +90,9 @@ Statement:
 AssignStatement:
     val_token id_token '=' E;
 
-FunctionDefStatement: fun_token id_token '(' ParamArray ')' ':' Type '=' E {
-    ReturnAST* returnAST = new ReturnAST($9);
-    $$ = new FunctionAST(*$2, *$4, returnAST, $7);
-    delete $2;
-    delete $4;
+FunctionDefStatement: FunctionSignature '=' E {
+    ReturnAST* returnAST = new ReturnAST($3);
+    $$ = new FunctionAST($1, returnAST);
 };
 
 FunctionCallStatement: id_token '(' ArgArray ')' {
@@ -102,10 +101,14 @@ FunctionCallStatement: id_token '(' ArgArray ')' {
    delete $3;
 }
 
-ExternalFunctionStatement: external_token fun_token id_token '(' ParamArray ')' ':' Type {
-    $$ = new FunctionPrototypeAST(*$3, *$5, $8);
-    delete $3;
-    delete $5;
+ExternalFunctionStatement: external_token FunctionSignature {
+    $$ = $2;
+}
+
+FunctionSignature: fun_token id_token '(' ParamArray ')' ':' Type {
+    $$ = new FunctionPrototypeAST(*$2, *$4, $7);
+    delete $2;
+    delete $4;
 }
 
 E:

@@ -12,29 +12,19 @@ extern llvm::Module* module;
 
 extern void yyerror(std::string msg);
 
-// TODO migrate implementation to reuse FunctionPrototype
 llvm::Function* FunctionAST::codegen() {
-    std::vector<llvm::Type *> param_types;
+    llvm::Function *function = module->getFunction(_prototype->getId());
 
-    for (Param* param : _params) {
-        llvm::Type *type = type_to_llvm_type(param->getType());
-        param_types.push_back(type);
+    if (function == nullptr) {
+        function = _prototype->codegen();
     }
 
-    llvm::Type *return_type = type_to_llvm_type(_return_type);
-
-    llvm::FunctionType* function_type = llvm::FunctionType::get(return_type, param_types, false);
-
-    llvm::Function *function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, _id, module);
-
-    unsigned i = 0;
-    for (auto &param : function->args()) {
-        param.setName(_params[i++]->getId());
+    if (function == nullptr) {
+        return nullptr;
     }
 
-    // TODO this is not working, functions can still be declared
     if (!function->empty()) {
-        yyerror("Function already declared: " + _id);
+        yyerror("Cannot redefine function: " + _prototype->getId());
     }
 
     llvm::BasicBlock* basic_block = llvm::BasicBlock::Create(context, "entry", function);
@@ -52,17 +42,22 @@ llvm::Function* FunctionAST::codegen() {
     return function;
 }
 
+FunctionAST::~FunctionAST() {
+    delete _prototype;
+    delete _body;
+}
+
 llvm::Function* FunctionPrototypeAST::codegen() {
     std::vector<llvm::Type *> param_types;
 
-    for (Param* param : _params) {
+    for (Param *param : _params) {
         llvm::Type *type = type_to_llvm_type(param->getType());
         param_types.push_back(type);
     }
 
     llvm::Type *return_type = type_to_llvm_type(_return_type);
 
-    llvm::FunctionType* function_type = llvm::FunctionType::get(return_type, param_types, false);
+    llvm::FunctionType *function_type = llvm::FunctionType::get(return_type, param_types, false);
 
     llvm::Function *function = llvm::Function::Create(function_type, llvm::Function::ExternalLinkage, _id, module);
 

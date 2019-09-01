@@ -13,6 +13,11 @@ public:
     FunctionPrototypeAST(std::string id, std::vector<Param*> params, Type return_type) :
             _id(std::move(id)), _params(std::move(params)), _return_type(return_type) {};
     llvm::Function* codegen();
+
+    const std::string &getId() const {
+        return _id;
+    }
+
 private:
     std::string _id;
     std::vector<Param*> _params;
@@ -21,15 +26,16 @@ private:
 
 class FunctionAST {
 public:
-    FunctionAST(std::string id, std::vector<Param*> params, ExprAST* body, Type return_type) :
-            _id(std::move(id)), _params(std::move(params)), _body(body), _return_type(return_type)  {};
+    FunctionAST(FunctionPrototypeAST *prototype, ExprAST *body) :
+            _prototype(prototype), _body(body) {
+    };
     llvm::Function* codegen();
 
+    virtual ~FunctionAST();
+
 private:
-    std::string _id;
-    std::vector<Param*> _params;
+    FunctionPrototypeAST* _prototype;
     ExprAST* _body;
-    Type _return_type;
 };
 
 #endif //KOTLIN_LLVM_STATEMENT_HPP
