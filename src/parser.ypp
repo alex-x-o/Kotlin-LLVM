@@ -32,6 +32,9 @@ extern int yylex();
     Type type_t;
     Param* param_t;
     std::vector<Param*>* param_vec;
+    FunctionAST* func_ast_t;
+    FunctionPrototypeAST* func_proto_ast_t;
+    CallExprAST* call_expr_ast_t;
 }
 
 %left '+' '-'
@@ -48,6 +51,9 @@ extern int yylex();
 %type <type_t> Type
 %type <param_vec> ParamArray
 %type <expr_vec> ArgArray
+%type <func_ast_t> FunctionDefStatement
+%type <func_proto_ast_t> ExternalFunctionStatement
+%type <call_expr_ast_t> FunctionCallStatement
 
 %%
 Program: Statement StatementSeparator Program
@@ -59,9 +65,18 @@ StatementSeparator: ';' | '\n' ;
 
 Statement:
       AssignStatement
-    | FunctionDefStatement
-    | ExternalFunctionStatement
-    | FunctionCallStatement
+    | FunctionDefStatement {
+       $1->codegen();
+       delete $1;
+    }
+    | ExternalFunctionStatement {
+       $1->codegen();
+       delete $1;
+    }
+    | FunctionCallStatement {
+        $1->codegen();
+        delete $1;
+    }
     |
     ;
 
@@ -70,23 +85,19 @@ AssignStatement:
 
 FunctionDefStatement: fun_token id_token '(' ParamArray ')' ':' Type '=' E {
     ReturnAST* returnAST = new ReturnAST($9);
-    FunctionAST* function = new FunctionAST(*$2, *$4, returnAST, $7);
-    function->codegen();
-    delete function;
+    $$ = new FunctionAST(*$2, *$4, returnAST, $7);
     delete $2;
     delete $4;
 };
 
 FunctionCallStatement: id_token '(' ArgArray ')' {
-   CallExprAST* call_expression = new CallExprAST(*$1, *$3);
-   call_expression->codegen();
+   $$ = new CallExprAST(*$1, *$3);
    delete $1;
    delete $3;
 }
 
 ExternalFunctionStatement: external_token fun_token id_token '(' ParamArray ')' ':' Type {
-    FunctionPrototypeAST* prototype = new FunctionPrototypeAST(*$3, *$5, $8);
-    prototype->codegen();
+    $$ = new FunctionPrototypeAST(*$3, *$5, $8);
     delete $3;
     delete $5;
 }
