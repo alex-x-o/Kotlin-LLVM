@@ -32,8 +32,12 @@ extern int yylex();
     Type type_t;
     Param* param_t;
     std::vector<Param*>* param_vec;
+    Statement* statement_t;
+    std::vector<Statement*>* statement_vec;
     FunctionAST* func_ast_t;
+    ExternalFunctionStatement* extern_func_t;
     FunctionPrototypeAST* func_proto_ast_t;
+    ExpressionStatement* expr_stat_t;
     CallExprAST* call_expr_ast_t;
 }
 
@@ -52,16 +56,29 @@ extern int yylex();
 %type <param_vec> ParamArray
 %type <expr_vec> ArgArray
 %type <func_ast_t> FunctionDefStatement
-%type <func_proto_ast_t> ExternalFunctionStatement
-%type <call_expr_ast_t> FunctionCallStatement
+%type <extern_func_t> ExternalFunctionStatement
 %type <func_proto_ast_t> FunctionSignature
+%type <expr_stat_t> ExpressionStatement
+%type <statement_t> Statement
+%type <statement_vec> StatementList
 
 %%
-Program: StatementList;
+Program: StatementList {
+    for (Statement* statement : *$1) {
+        statement->codegen();
+    }
+    delete $1;
+}
 
-StatementList: Statement StatementSeparator Program
-             | Statement
-             ;
+StatementList: StatementList StatementSeparator Statement {
+                 $$ = $1;
+                 $$->push_back($3);
+               }
+               | Statement {
+                  $$ = new std::vector<Statement*>();
+                  $$->push_back($1);
+               }
+               ;
 
 StatementSeparator: ';' | '\n' ;
 
@@ -69,22 +86,23 @@ Block: '{' OptNewline StatementList OptNewline '}';
 
 OptNewline: '\n' | ;
 
-
 Statement:
-      AssignStatement
+    AssignStatement {
+      //TODO
+      $$ = new EmptyStatement();
+    }
     | FunctionDefStatement {
-       $1->codegen();
-       delete $1;
+       $$ = $1;
     }
     | ExternalFunctionStatement {
-       $1->codegen();
-       delete $1;
+       $$ = $1;
     }
-    | FunctionCallStatement {
-        $1->codegen();
-        delete $1;
+    | ExpressionStatement {
+        $$ = $1;
     }
-    |
+    | {
+        $$ = new EmptyStatement();
+    }
     ;
 
 AssignStatement:
@@ -95,14 +113,12 @@ FunctionDefStatement: FunctionSignature '=' E {
     $$ = new FunctionAST($1, returnAST);
 };
 
-FunctionCallStatement: id_token '(' ArgArray ')' {
-   $$ = new CallExprAST(*$1, *$3);
-   delete $1;
-   delete $3;
+ExpressionStatement: E {
+    $$ = new ExpressionStatement($1);
 }
 
 ExternalFunctionStatement: external_token FunctionSignature {
-    $$ = $2;
+    $$ = new ExternalFunctionStatement($2);
 }
 
 FunctionSignature: fun_token id_token '(' ParamArray ')' ':' Type {
@@ -140,6 +156,11 @@ E:
   }
   | return_token E {
     $$ = new ReturnAST($2);
+  }
+  | id_token '(' ArgArray ')' {
+    $$ = new CallExprAST(*$1, *$3);
+    delete $1;
+    delete $3;
   };
 
 ArgArray: 

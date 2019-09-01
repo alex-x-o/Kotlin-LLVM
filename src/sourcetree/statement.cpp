@@ -12,7 +12,7 @@ extern llvm::Module* module;
 
 extern void yyerror(std::string msg);
 
-llvm::Function* FunctionAST::codegen() {
+void FunctionAST::codegen() {
     llvm::Function *function = module->getFunction(_prototype->getId());
 
     if (function == nullptr) {
@@ -20,7 +20,8 @@ llvm::Function* FunctionAST::codegen() {
     }
 
     if (function == nullptr) {
-        return nullptr;
+        yyerror("Error generating function");
+        return;
     }
 
     if (!function->empty()) {
@@ -38,8 +39,6 @@ llvm::Function* FunctionAST::codegen() {
     _body->codegen();
 
     llvm::verifyFunction(*function);
-
-    return function;
 }
 
 FunctionAST::~FunctionAST() {
@@ -68,4 +67,10 @@ llvm::Function* FunctionPrototypeAST::codegen() {
     return function;
 }
 
-#include "statement.hpp"
+void ExternalFunctionStatement::codegen() {
+    _prototype->codegen();
+}
+
+ExternalFunctionStatement::~ExternalFunctionStatement() {
+    delete _prototype;
+}
