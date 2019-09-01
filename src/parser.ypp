@@ -56,11 +56,17 @@ extern int yylex();
 %type <call_expr_ast_t> FunctionCallStatement
 
 %%
-Program: Statement StatementSeparator Program
-| Statement
-;
+Program: StatementList;
+
+StatementList: Statement StatementSeparator Program
+             | Statement
+             ;
 
 StatementSeparator: ';' | '\n' ;
+
+Block: '{' OptNewline StatementList OptNewline '}';
+
+OptNewline: '\n' | ;
 
 
 Statement:
