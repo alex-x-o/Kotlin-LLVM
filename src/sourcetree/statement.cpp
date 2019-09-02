@@ -83,6 +83,24 @@ ExternalFunctionStatement::~ExternalFunctionStatement() {
 }
 
 void AssignStatement::codegen() {
-   /* llvm::Value *value = _expr->codegen();
-    llvm::AllocaInst* alloca = new llvm::AllocaInst()*/
+    llvm::Value* lhs = named_values[_id];
+    if (lhs == nullptr) {
+        yyerror("Unknown variable: " + _id);
+    }
+    llvm::Value* rhs = _expr->codegen();
+
+    builder.CreateStore(lhs, rhs);
+}
+
+
+void VarDeclarationStatement::codegen() {
+    llvm::Type* llvm_type = type_to_llvm_type(_type);
+    llvm::AllocaInst* alloca = builder.CreateAlloca(llvm_type, nullptr, _id);
+    named_values[_id] = alloca;
+
+}
+
+void DeclareAndAssignStatement::codegen() {
+    _decl_statement->codegen();
+    _assign_statement->codegen();
 }

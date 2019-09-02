@@ -39,6 +39,7 @@ extern int yylex();
     FunctionPrototypeAST* func_proto_ast_t;
     ExpressionStatement* expr_stat_t;
     CallExprAST* call_expr_ast_t;
+    VarDeclarationStatement* var_decl_stat_t;
 }
 
 %left '+' '-'
@@ -59,8 +60,9 @@ extern int yylex();
 %type <extern_func_t> ExternalFunctionStatement
 %type <func_proto_ast_t> FunctionSignature
 %type <expr_stat_t> ExpressionStatement
-%type <statement_t> Statement
+%type <statement_t> Statement DeclareAndAssignStatement AssignStatement
 %type <statement_vec> StatementList Block
+%type <var_decl_stat_t> VarDeclarationStatement
 
 %%
 Program: StatementList {
@@ -87,9 +89,14 @@ Block: '{' StatementList '}' {
 }
 
 Statement:
-    AssignStatement {
-      //TODO
-      $$ = new EmptyStatement();
+    VarDeclarationStatement {
+      $$ = $1;
+    }
+    | AssignStatement {
+      $$ = $1;
+    }
+    | DeclareAndAssignStatement {
+      $$ = $1;
     }
     | FunctionDefStatement {
        $$ = $1;
@@ -107,8 +114,21 @@ Statement:
     }
     ;
 
-AssignStatement:
-    val_token id_token '=' E;
+DeclareAndAssignStatement: VarDeclarationStatement '=' E {
+    std::string id = $1->getId();
+    auto assign_statement = new AssignStatement(id, $3);
+    $$ = new DeclareAndAssignStatement($1, assign_statement);
+};
+
+VarDeclarationStatement: var_token id_token ':' Type {
+    $$ = new VarDeclarationStatement(*$2, $4, true);
+    delete $2;
+}
+
+AssignStatement: id_token '=' E {
+    $$ = new AssignStatement(*$1, $3);
+    delete $1;
+}
 
 FunctionDefStatement: FunctionSignature '=' E {
     ReturnStatement* returnAST = new ReturnStatement($3);

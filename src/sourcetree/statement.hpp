@@ -83,7 +83,24 @@ class EmptyStatement : public Statement {
     void codegen() override {}
 };
 
+class VarDeclarationStatement: public Statement {
+public:
+    VarDeclarationStatement(std::string id, Type type, bool mut = true) :
+    _id(std::move(id)), _type(type), _mut(mut) {};
+    void codegen() override;
+
+    const std::string &getId() const {
+        return _id;
+    }
+
+private:
+    std::string _id;
+    Type _type;
+    bool _mut;
+};
+
 class AssignStatement : public Statement {
+public:
     AssignStatement(std::string id, ExprAST* expr) : _id(std::move(id)), _expr(expr) {};
     void codegen() override;
 
@@ -93,6 +110,22 @@ class AssignStatement : public Statement {
 private:
     std::string _id;
     ExprAST* _expr;
+};
+
+class DeclareAndAssignStatement : public Statement {
+public:
+    DeclareAndAssignStatement(VarDeclarationStatement* decl_statement, AssignStatement* assign_statement)
+    : _decl_statement(decl_statement), _assign_statement(assign_statement) {};
+
+    void codegen() override;
+
+    ~DeclareAndAssignStatement() override {
+        delete _decl_statement;
+        delete _assign_statement;
+    }
+private:
+    VarDeclarationStatement* _decl_statement;
+    AssignStatement* _assign_statement;
 };
 
 #endif //KOTLIN_LLVM_STATEMENT_HPP
