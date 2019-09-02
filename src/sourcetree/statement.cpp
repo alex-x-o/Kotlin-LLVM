@@ -36,7 +36,9 @@ void FunctionAST::codegen() {
         named_values[arg.getName()] = &arg;
     }
 
-    _body->codegen();
+    for (Statement* statement : *_body) {
+        statement->codegen();
+    }
 
     llvm::verifyFunction(*function);
 }

@@ -110,7 +110,7 @@ llvm::Value *CallExprAST::codegen() {
     return builder.CreateCall(callee_function, generated_args, "calltmp");
 }
 
-llvm::Value* ReturnAST::codegen() {
+void ReturnStatement::codegen() {
     llvm::Value* expression_value = _expr->codegen();
-    return builder.CreateRet(expression_value);
+    builder.CreateRet(expression_value);
 }

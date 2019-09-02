@@ -102,13 +102,4 @@ private:
     std::vector<ExprAST*> _args;
 };
 
-class ReturnAST : public ExprAST {
-public:
-    explicit ReturnAST(ExprAST* expr) : _expr(expr) {};
-
-    llvm::Value* codegen() override;
-private:
-    ExprAST* _expr;
-};
-
 #endif //KOTLIN_LLVM_AST_HPP

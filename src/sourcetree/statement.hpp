@@ -32,7 +32,7 @@ private:
 
 class FunctionAST : public Statement {
 public:
-    FunctionAST(FunctionPrototypeAST *prototype, ExprAST *body) :
+    FunctionAST(FunctionPrototypeAST *prototype, std::vector<Statement*> *body) :
             _prototype(prototype), _body(body) {
     };
     void codegen() override;
@@ -41,7 +41,7 @@ public:
 
 private:
     FunctionPrototypeAST* _prototype;
-    ExprAST* _body;
+    std::vector<Statement*>* _body;
 };
 
 class ExternalFunctionStatement : public Statement {
@@ -67,6 +67,15 @@ public:
     }
 private:
     ExprAST* expr;
+};
+
+class ReturnStatement : public Statement {
+public:
+    explicit ReturnStatement(ExprAST* expr) : _expr(expr) {};
+
+    void codegen() override;
+private:
+    ExprAST* _expr;
 };
 
 class EmptyStatement : public Statement {

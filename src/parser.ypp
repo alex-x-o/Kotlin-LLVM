@@ -60,7 +60,7 @@ extern int yylex();
 %type <func_proto_ast_t> FunctionSignature
 %type <expr_stat_t> ExpressionStatement
 %type <statement_t> Statement
-%type <statement_vec> StatementList
+%type <statement_vec> StatementList Block
 
 %%
 Program: StatementList {
@@ -82,9 +82,9 @@ StatementList: StatementList StatementSeparator Statement {
 
 StatementSeparator: ';' | '\n' ;
 
-Block: '{' OptNewline StatementList OptNewline '}';
-
-OptNewline: '\n' | ;
+Block: '{' StatementList '}' {
+    $$ = $2;
+}
 
 Statement:
     AssignStatement {
@@ -98,7 +98,9 @@ Statement:
        $$ = $1;
     }
     | ExpressionStatement {
-        $$ = $1;
+       $$ = $1;
+    } | return_token E {
+       $$ = new ReturnStatement($2);
     }
     | {
         $$ = new EmptyStatement();
@@ -109,9 +111,14 @@ AssignStatement:
     val_token id_token '=' E;
 
 FunctionDefStatement: FunctionSignature '=' E {
-    ReturnAST* returnAST = new ReturnAST($3);
-    $$ = new FunctionAST($1, returnAST);
-};
+    ReturnStatement* returnAST = new ReturnStatement($3);
+    auto statements = new std::vector<Statement*>();
+    statements->push_back(returnAST);
+    $$ = new FunctionAST($1, statements);
+}
+| FunctionSignature Block {
+    $$ = new FunctionAST($1, $2);
+}
 
 ExpressionStatement: E {
     $$ = new ExpressionStatement($1);
@@ -153,9 +160,6 @@ E:
   | str_token {
     $$ = new ConstStringExprAST(*$1);
     delete $1;
-  }
-  | return_token E {
-    $$ = new ReturnAST($2);
   }
   | id_token '(' ArgArray ')' {
     $$ = new CallExprAST(*$1, *$3);
