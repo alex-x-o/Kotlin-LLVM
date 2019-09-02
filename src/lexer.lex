@@ -19,6 +19,16 @@
 "fun" return fun_token;
 "external" return external_token;
 "return" return return_token;
+"if" return if_token;
+"else" return else_token;
+"true" {
+    yylval.boolean_value = true;
+    return boolean_token;
+}
+"false" {
+    yylval.boolean_value = false;
+    return boolean_token;
+}
 
 "Int" return int_type_token; /* Migrate to actual types in the future? */
 "Double" return double_type_token;

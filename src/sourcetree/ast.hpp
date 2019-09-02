@@ -52,6 +52,14 @@ private:
     std::string _value;
 };
 
+class ConstBooleanExprAST : public ExprAST {
+public:
+    llvm::Value* codegen() override;
+    explicit ConstBooleanExprAST(bool value) : _value(value) {};
+private:
+    bool _value;
+};
+
 class VarExprAST : public ExprAST {
 public:
     llvm::Value* codegen() override;
@@ -100,6 +108,24 @@ public:
 private:
     std::string _callee_id;
     std::vector<ExprAST*> _args;
+};
+
+class IfExprAST : public ExprAST {
+public:
+    IfExprAST(ExprAST* cond, ExprAST* then_expr, ExprAST* else_expr)
+    : _cond(cond), _then_expr(then_expr), _else_expr(else_expr) {};
+    llvm::Value* codegen() override;
+
+    ~IfExprAST() override {
+        delete _cond;
+        delete _then_expr;
+        delete _else_expr;
+    }
+
+private:
+    ExprAST* _cond;
+    ExprAST* _then_expr;
+    ExprAST* _else_expr;
 };
 
 #endif //KOTLIN_LLVM_AST_HPP

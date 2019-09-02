@@ -89,7 +89,7 @@ void AssignStatement::codegen() {
     }
     llvm::Value* rhs = _expr->codegen();
 
-    builder.CreateStore(lhs, rhs);
+    builder.CreateStore(rhs, lhs);
 }
 
 

@@ -35,6 +35,10 @@ llvm::Value* ConstStringExprAST::codegen() {
     return builder.CreateGlobalStringPtr(llvm::StringRef(_value));
 }
 
+llvm::Value *ConstBooleanExprAST::codegen() {
+    return llvm::ConstantInt::get(context, llvm::APInt(1, _value ? 1 : 0));
+}
+
 llvm::Value *VarExprAST::codegen() {
     llvm::Value* value = named_values[_id];
     if (value == nullptr) {
@@ -113,4 +117,47 @@ llvm::Value *CallExprAST::codegen() {
 void ReturnStatement::codegen() {
     llvm::Value* expression_value = _expr->codegen();
     builder.CreateRet(expression_value);
+}
+
+llvm::Value *IfExprAST::codegen() {
+    llvm::Value *cond_value = _cond->codegen();
+
+    if (cond_value->getType() != llvm::Type::getInt1Ty(context)) {
+        yyerror("The condition of the if expression must be boolean");
+    }
+
+    llvm::Function *function = builder.GetInsertBlock()->getParent();
+
+    llvm::BasicBlock *then_block = llvm::BasicBlock::Create(context, "iftrue", function);
+    llvm::BasicBlock *else_block = llvm::BasicBlock::Create(context, "iffalse");
+    llvm::BasicBlock *merge_block = llvm::BasicBlock::Create(context, "ifcont");
+
+    builder.CreateCondBr(cond_value, then_block, else_block);
+
+    builder.SetInsertPoint(then_block);
+
+    llvm::Value *then_value = _then_expr->codegen();
+
+    builder.CreateBr(merge_block);
+
+    then_block = builder.GetInsertBlock();
+
+    function->getBasicBlockList().push_back(else_block);
+    builder.SetInsertPoint(else_block);
+
+    llvm::Value *else_value = _else_expr->codegen();
+
+    builder.CreateBr(merge_block);
+
+    if (then_value->getType() != else_value->getType()) {
+        yyerror("If branches must have the same value");
+    }
+
+    function->getBasicBlockList().push_back(merge_block);
+    builder.SetInsertPoint(merge_block);
+    llvm::PHINode* phi_node = builder.CreatePHI(then_value->getType(), 2, "iftmp");
+
+    phi_node->addIncoming(then_value, then_block);
+    phi_node->addIncoming(else_value, else_block);
+    return phi_node;
 }

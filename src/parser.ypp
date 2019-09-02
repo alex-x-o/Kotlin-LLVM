@@ -40,18 +40,20 @@ extern int yylex();
     ExpressionStatement* expr_stat_t;
     CallExprAST* call_expr_ast_t;
     VarDeclarationStatement* var_decl_stat_t;
+    bool boolean_value;
 }
 
 %left '+' '-'
 %left '*' '/'
 
-%token val_token var_token fun_token external_token return_token
+%token val_token var_token fun_token external_token return_token if_token else_token
 %token int_type_token double_type_token string_type_token
 %token <string_value> id_token
 %token <double_value> num_token
 %token <string_value> str_token
+%token <boolean_value> boolean_token
 
-%type <expr_t> E
+%type <expr_t> E IfElseExpr
 %type <param_t> Param
 %type <type_t> Type
 %type <param_vec> ParamArray
@@ -154,6 +156,10 @@ FunctionSignature: fun_token id_token '(' ParamArray ')' ':' Type {
     delete $4;
 }
 
+IfElseExpr: if_token '(' E ')' E else_token E {
+    $$ = new IfExprAST($3, $5, $7);
+}
+
 E:
   E '+' E {
     $$ = new AddExprAST($1, $3);
@@ -180,6 +186,12 @@ E:
   | str_token {
     $$ = new ConstStringExprAST(*$1);
     delete $1;
+  }
+  | boolean_token {
+    $$ = new ConstBooleanExprAST($1);
+  }
+  | IfElseExpr {
+    $$ = $1;
   }
   | id_token '(' ArgArray ')' {
     $$ = new CallExprAST(*$1, *$3);
