@@ -29,7 +29,7 @@ add_executable(kotlin-llvm
         ${BISON_MyParser_OUTPUTS}
         ${FLEX_MyLexer_OUTPUTS}
         src/sourcetree/ast.cpp src/sourcetree/ast.hpp
-        src/sourcetree/statement.cpp src/sourcetree/statement.hpp)
+        src/sourcetree/statement.cpp src/sourcetree/statement.hpp src/sourcetree/allocation.cpp src/sourcetree/allocation.hpp)
 
 # Link against LLVM libraries
 target_link_libraries(kotlin-llvm ${llvm_libs})

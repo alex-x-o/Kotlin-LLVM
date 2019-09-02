@@ -10,7 +10,7 @@
 #include "llvm/IR/Verifier.h"
 
 extern llvm::LLVMContext context;
-extern std::map<std::string, llvm::Value*> named_values;
+extern std::map<std::string, llvm::AllocaInst*> named_values;
 extern llvm::IRBuilder<> builder;
 extern llvm::Module* module;
 
@@ -41,7 +41,7 @@ llvm::Value *VarExprAST::codegen() {
         std::cerr << "Unknown variable name: " << _id << std::endl;
         exit(EXIT_FAILURE);
     }
-    return value;
+    return builder.CreateLoad(value, _id);
 }
 
 BinaryExprAST::~BinaryExprAST() {

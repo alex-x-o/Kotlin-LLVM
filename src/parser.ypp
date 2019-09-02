@@ -213,7 +213,7 @@ Type: int_type_token {
 llvm::LLVMContext context;
 llvm::IRBuilder<> builder(context);
 llvm::Module* module;
-std::map<std::string, llvm::Value*> named_values;
+std::map<std::string, llvm::AllocaInst*> named_values;
 
 int main() {
     yyin = fopen("../test.kt", "r");

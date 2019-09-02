@@ -1,6 +1,7 @@
 #ifndef KOTLIN_LLVM_STATEMENT_HPP
 #define KOTLIN_LLVM_STATEMENT_HPP
 
+#include <utility>
 #include <vector>
 #include <string>
 
@@ -80,6 +81,18 @@ private:
 
 class EmptyStatement : public Statement {
     void codegen() override {}
+};
+
+class AssignStatement : public Statement {
+    AssignStatement(std::string id, ExprAST* expr) : _id(std::move(id)), _expr(expr) {};
+    void codegen() override;
+
+    ~AssignStatement() override {
+        delete _expr;
+    }
+private:
+    std::string _id;
+    ExprAST* _expr;
 };
 
 #endif //KOTLIN_LLVM_STATEMENT_HPP

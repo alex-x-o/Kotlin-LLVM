@@ -4,9 +4,10 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Verifier.h"
+#include "allocation.hpp"
 
 extern llvm::LLVMContext context;
-extern std::map<std::string, llvm::Value*> named_values;
+extern std::map<std::string, llvm::AllocaInst*> named_values;
 extern llvm::IRBuilder<> builder;
 extern llvm::Module* module;
 
@@ -33,7 +34,11 @@ void FunctionAST::codegen() {
 
     named_values.clear();
     for (auto &arg : function->args()) {
-        named_values[arg.getName()] = &arg;
+        llvm::AllocaInst* alloca = create_entry_block_alloca(function, arg.getName(), arg.getType());
+
+        builder.CreateStore(&arg, alloca);
+
+        named_values[arg.getName()] = alloca;
     }
 
     for (Statement* statement : *_body) {
@@ -75,4 +80,9 @@ void ExternalFunctionStatement::codegen() {
 
 ExternalFunctionStatement::~ExternalFunctionStatement() {
     delete _prototype;
+}
+
+void AssignStatement::codegen() {
+   /* llvm::Value *value = _expr->codegen();
+    llvm::AllocaInst* alloca = new llvm::AllocaInst()*/
 }
