@@ -24,6 +24,7 @@ extern int yylex();
 
 %union {
     std::string* string_value;
+    int int_value;
     double double_value;
     ExprAST* expr_t;
     llvm::Function* func_t;
@@ -43,13 +44,16 @@ extern int yylex();
     bool boolean_value;
 }
 
+%nonassoc else_token
+%left '>' '<' ge_token le_token
 %left '+' '-'
-%left '*' '/'
+%left '*' '/' '%' range_token
 
-%token val_token var_token fun_token external_token return_token if_token else_token
+%token val_token var_token fun_token external_token return_token if_token else_token range_token
 %token int_type_token double_type_token string_type_token
 %token <string_value> id_token
-%token <double_value> num_token
+%token <int_value> int_token
+%token <double_value> double_token
 %token <string_value> str_token
 %token <boolean_value> boolean_token
 
@@ -62,7 +66,7 @@ extern int yylex();
 %type <extern_func_t> ExternalFunctionStatement
 %type <func_proto_ast_t> FunctionSignature
 %type <expr_stat_t> ExpressionStatement
-%type <statement_t> Statement DeclareAndAssignStatement AssignStatement
+%type <statement_t> Statement DeclareAndAssignStatement AssignStatement IfElseStatement
 %type <statement_vec> StatementList Block
 %type <var_decl_stat_t> VarDeclarationStatement
 
@@ -108,8 +112,12 @@ Statement:
     }
     | ExpressionStatement {
        $$ = $1;
-    } | return_token E {
+    }
+    | return_token E {
        $$ = new ReturnStatement($2);
+    }
+    | IfElseStatement {
+        $$ = $1;
     }
     | {
         $$ = new EmptyStatement();
@@ -156,8 +164,8 @@ FunctionSignature: fun_token id_token '(' ParamArray ')' ':' Type {
     delete $4;
 }
 
-IfElseExpr: if_token '(' E ')' E else_token E {
-    $$ = new IfExprAST($3, $5, $7);
+IfElseStatement: if_token '(' E ')' Block else_token Block {
+    $$ = new IfElseStatement($3, $5, $7);
 }
 
 E:
@@ -173,6 +181,21 @@ E:
   | E '/' E {
     $$ = new DivExprAST($1, $3);
   }
+  | E '%' E {
+    $$ = new ModExprAST($1, $3);
+  }
+  | E '<' E {
+    $$ = new LessExprAST($1, $3);
+  }
+  | E '>' E {
+    $$ = new GrtExprAST($1, $3);
+  }
+  | E le_token E {
+    $$ = new LEExprAST($1, $3);
+  }
+  | E ge_token E {
+    $$ = new GEExprAST($1, $3);
+  }
   | '(' E ')' {
     $$ = $2;
   }
@@ -180,8 +203,11 @@ E:
     $$ = new VarExprAST(*$1);
     delete $1;
   }
-  | num_token {
-    $$ = new ConstExprAST($1);
+  | int_token {
+    $$ = new IntExprAST($1);
+  }
+  | double_token {
+    $$ = new DoubleExprAST($1);
   }
   | str_token {
     $$ = new ConstStringExprAST(*$1);
@@ -198,6 +224,10 @@ E:
     delete $1;
     delete $3;
   };
+
+IfElseExpr: if_token '(' E ')' E else_token E {
+    $$ = new IfElseExprAST($3, $5, $7);
+}
 
 ArgArray: 
     ArgArray ',' E {
@@ -248,7 +278,7 @@ llvm::Module* module;
 std::map<std::string, llvm::AllocaInst*> named_values;
 
 int main() {
-    yyin = fopen("../test.kt", "r");
+    yyin = fopen("../test3.kt", "r");
     module = new llvm::Module("My module", context);
     yyparse();
     module->print(llvm::outs(), nullptr);

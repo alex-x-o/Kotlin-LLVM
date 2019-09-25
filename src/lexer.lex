@@ -21,6 +21,9 @@
 "return" return return_token;
 "if" return if_token;
 "else" return else_token;
+[\.\.] return range_token;
+"<=" return le_token;
+">=" return ge_token;
 "true" {
     yylval.boolean_value = true;
     return boolean_token;
@@ -39,9 +42,14 @@
   return id_token;
 }
 
-[0-9]+(\.[0-9]*)? {
+[1-9][0-9]* {
+  yylval.int_value = atoi(yytext);
+  return int_token;
+}
+
+[1-9][0-9]*(\.[0-9]*)? {
   yylval.double_value = atof(yytext);
-  return num_token;
+  return double_token;
 }
 
 \".+?\" {
@@ -50,7 +58,7 @@
     return str_token;
 }
 
-[-=(),;+*/{}\n:] return *yytext;
+[-=(),;%+*/<>{}\n:] return *yytext;
 
 [ \t] {}
 

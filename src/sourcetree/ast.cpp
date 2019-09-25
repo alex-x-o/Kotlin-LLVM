@@ -27,7 +27,11 @@ llvm::Type* type_to_llvm_type(Type type) {
     }
 }
 
-llvm::Value *ConstExprAST::codegen() {
+llvm::Value *IntExprAST::codegen() {
+    return llvm::ConstantInt::get(context, llvm::APInt(32, _value));
+}
+
+llvm::Value *DoubleExprAST::codegen() {
     return llvm::ConstantFP::get(context, llvm::APFloat(_value));
 }
 
@@ -55,7 +59,7 @@ BinaryExprAST::~BinaryExprAST() {
 
 llvm::Value *AddExprAST::codegen() {
     llvm::Value *value_first = first->codegen();
-    llvm::Value *value_second = first->codegen();
+    llvm::Value *value_second = second->codegen();
     if (value_first == nullptr || value_second == nullptr) {
         yyerror("Error");
     }
@@ -64,7 +68,7 @@ llvm::Value *AddExprAST::codegen() {
 
 llvm::Value *SubExprAST::codegen() {
     llvm::Value *value_first = first->codegen();
-    llvm::Value *value_second = first->codegen();
+    llvm::Value *value_second = second->codegen();
     if (value_first == nullptr || value_second == nullptr) {
         yyerror("Error");
     }
@@ -73,7 +77,7 @@ llvm::Value *SubExprAST::codegen() {
 
 llvm::Value *MulExprAST::codegen() {
     llvm::Value *value_first = first->codegen();
-    llvm::Value *value_second = first->codegen();
+    llvm::Value *value_second = second->codegen();
     if (value_first == nullptr || value_second == nullptr) {
         yyerror("Error");
     }
@@ -82,11 +86,56 @@ llvm::Value *MulExprAST::codegen() {
 
 llvm::Value *DivExprAST::codegen() {
     llvm::Value *value_first = first->codegen();
-    llvm::Value *value_second = first->codegen();
+    llvm::Value *value_second = second->codegen();
     if (value_first == nullptr || value_second == nullptr) {
         yyerror("Error");
     }
     return builder.CreateFDiv(value_first, value_second, "divtmp");
+}
+
+llvm::Value *ModExprAST::codegen() {
+    llvm::Value *value_first = first->codegen();
+    llvm::Value *value_second = second->codegen();
+    if (value_first == nullptr || value_second == nullptr) {
+        yyerror("Error");
+    }
+    return builder.CreateSRem(value_first, value_second, "modtmp");
+}
+
+llvm::Value *LessExprAST::codegen() {
+    llvm::Value *value_first = first->codegen();
+    llvm::Value *value_second = second->codegen();
+    if (value_first == nullptr || value_second == nullptr) {
+        yyerror("Error");
+    }
+    return builder.CreateICmpSLT(value_first, value_second, "modtmp");
+}
+
+llvm::Value *GrtExprAST::codegen() {
+    llvm::Value *value_first = first->codegen();
+    llvm::Value *value_second = second->codegen();
+    if (value_first == nullptr || value_second == nullptr) {
+        yyerror("Error");
+    }
+    return builder.CreateICmpSGT(value_first, value_second, "modtmp");
+}
+
+llvm::Value *LEExprAST::codegen() {
+    llvm::Value *value_first = first->codegen();
+    llvm::Value *value_second = second->codegen();
+    if (value_first == nullptr || value_second == nullptr) {
+        yyerror("Error");
+    }
+    return builder.CreateICmpSLE(value_first, value_second, "modtmp");
+}
+
+llvm::Value *GEExprAST::codegen() {
+    llvm::Value *value_first = first->codegen();
+    llvm::Value *value_second = second->codegen();
+    if (value_first == nullptr || value_second == nullptr) {
+        yyerror("Error");
+    }
+    return builder.CreateICmpSGE(value_first, value_second, "modtmp");
 }
 
 llvm::Value *CallExprAST::codegen() {
@@ -119,7 +168,7 @@ void ReturnStatement::codegen() {
     builder.CreateRet(expression_value);
 }
 
-llvm::Value *IfExprAST::codegen() {
+llvm::Value *IfElseExprAST::codegen() {
     llvm::Value *cond_value = _cond->codegen();
 
     if (cond_value->getType() != llvm::Type::getInt1Ty(context)) {
@@ -137,6 +186,8 @@ llvm::Value *IfExprAST::codegen() {
     builder.SetInsertPoint(then_block);
 
     llvm::Value *then_value = _then_expr->codegen();
+    if(then_value == nullptr)
+        return nullptr;
 
     builder.CreateBr(merge_block);
 
@@ -146,6 +197,8 @@ llvm::Value *IfExprAST::codegen() {
     builder.SetInsertPoint(else_block);
 
     llvm::Value *else_value = _else_expr->codegen();
+    if(else_value == nullptr)
+        return nullptr;
 
     builder.CreateBr(merge_block);
 

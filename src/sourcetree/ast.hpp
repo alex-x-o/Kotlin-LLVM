@@ -36,10 +36,18 @@ public:
     virtual llvm::Value* codegen() = 0;
 };
 
-class ConstExprAST : public ExprAST {
+class IntExprAST : public ExprAST {
 public:
     llvm::Value* codegen() override;
-    explicit ConstExprAST(double value) : _value(value) {}
+    explicit IntExprAST(double value) : _value(value) {}
+private:
+    int _value;
+};
+
+class DoubleExprAST : public ExprAST {
+public:
+    llvm::Value* codegen() override;
+    explicit DoubleExprAST(double value) : _value(value) {}
 private:
     double _value;
 };
@@ -100,6 +108,36 @@ public:
     llvm::Value* codegen() override;
 };
 
+class ModExprAST : public BinaryExprAST {
+public:
+    ModExprAST(ExprAST* first, ExprAST* second) : BinaryExprAST(first, second) {};
+    llvm::Value* codegen() override;
+};
+
+class LessExprAST : public BinaryExprAST {
+public:
+    LessExprAST(ExprAST* first, ExprAST* second) : BinaryExprAST(first, second) {};
+    llvm::Value* codegen() override;
+};
+
+class GrtExprAST : public BinaryExprAST {
+public:
+    GrtExprAST(ExprAST* first, ExprAST* second) : BinaryExprAST(first, second) {};
+    llvm::Value* codegen() override;
+};
+
+class LEExprAST : public BinaryExprAST {
+public:
+    LEExprAST(ExprAST* first, ExprAST* second) : BinaryExprAST(first, second) {};
+    llvm::Value* codegen() override;
+};
+
+class GEExprAST : public BinaryExprAST {
+public:
+    GEExprAST(ExprAST* first, ExprAST* second) : BinaryExprAST(first, second) {};
+    llvm::Value* codegen() override;
+};
+
 class CallExprAST : public ExprAST {
 public:
     explicit CallExprAST(std::string callee_id, std::vector<ExprAST *> args) : _callee_id(std::move(callee_id)),
@@ -110,13 +148,13 @@ private:
     std::vector<ExprAST*> _args;
 };
 
-class IfExprAST : public ExprAST {
+class IfElseExprAST : public ExprAST {
 public:
-    IfExprAST(ExprAST* cond, ExprAST* then_expr, ExprAST* else_expr)
+    IfElseExprAST(ExprAST* cond, ExprAST* then_expr, ExprAST* else_expr)
     : _cond(cond), _then_expr(then_expr), _else_expr(else_expr) {};
     llvm::Value* codegen() override;
 
-    ~IfExprAST() override {
+    ~IfElseExprAST() override {
         delete _cond;
         delete _then_expr;
         delete _else_expr;

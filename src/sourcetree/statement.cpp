@@ -104,3 +104,39 @@ void DeclareAndAssignStatement::codegen() {
     _decl_statement->codegen();
     _assign_statement->codegen();
 }
+
+void IfElseStatement::codegen() {
+    llvm::Value *cond_value = _cond->codegen();
+
+    if (cond_value->getType() != llvm::Type::getInt1Ty(context)) {
+        yyerror("The condition of the if expression must be boolean");
+    }
+
+    llvm::Function *function = builder.GetInsertBlock()->getParent();
+
+    llvm::BasicBlock *then_block = llvm::BasicBlock::Create(context, "iftrue", function);
+    llvm::BasicBlock *else_block = llvm::BasicBlock::Create(context, "iffalse");
+    llvm::BasicBlock *merge_block = llvm::BasicBlock::Create(context, "ifcont");
+
+    builder.CreateCondBr(cond_value, then_block, else_block);
+
+    builder.SetInsertPoint(then_block);
+
+    for(auto &i: *_then_stat)
+        i->codegen();
+
+    builder.CreateBr(merge_block);
+
+    then_block = builder.GetInsertBlock();
+
+    function->getBasicBlockList().push_back(else_block);
+    builder.SetInsertPoint(else_block);
+
+    for(auto &i: *_else_stat)
+        i->codegen();
+
+    builder.CreateBr(merge_block);
+
+    function->getBasicBlockList().push_back(merge_block);
+    builder.SetInsertPoint(merge_block);
+}

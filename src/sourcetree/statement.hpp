@@ -128,4 +128,24 @@ private:
     AssignStatement* _assign_statement;
 };
 
+class IfElseStatement : public Statement {
+public:
+    IfElseStatement(ExprAST* cond, std::vector<Statement*>* then_stat, std::vector<Statement*>*  else_stat)
+            : _cond(cond), _then_stat(then_stat), _else_stat(else_stat) {};
+    void codegen() override;
+
+    ~IfElseStatement() override {
+        delete _cond;
+        for(auto &i : *_then_stat)
+            delete i;
+        for(auto &i : *_else_stat)
+            delete i;
+    }
+
+private:
+    ExprAST* _cond;
+    std::vector<Statement*>* _then_stat;
+    std::vector<Statement*>* _else_stat;
+};
+
 #endif //KOTLIN_LLVM_STATEMENT_HPP
