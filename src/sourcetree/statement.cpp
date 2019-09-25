@@ -10,6 +10,8 @@ extern llvm::LLVMContext context;
 extern std::map<std::string, llvm::AllocaInst*> named_values;
 extern llvm::IRBuilder<> builder;
 extern llvm::Module* module;
+llvm::Value* Str;
+llvm::Function *PrintFja;
 
 extern void yyerror(std::string msg);
 
@@ -92,6 +94,70 @@ void AssignStatement::codegen() {
     builder.CreateStore(rhs, lhs);
 }
 
+void PlusAssignStatement::codegen() {
+    llvm::Value* lhs = named_values[_id];
+    if (lhs == nullptr) {
+        yyerror("Unknown variable: " + _id);
+    }
+    llvm::Value* rhs = _expr->codegen();
+
+    llvm::Value* lh = builder.CreateLoad(lhs, _id);
+    llvm::Value* res = builder.CreateAdd(lh, rhs, "add");
+
+    builder.CreateStore(res, lhs);
+}
+
+void MinusAssignStatement::codegen() {
+    llvm::Value* lhs = named_values[_id];
+    if (lhs == nullptr) {
+        yyerror("Unknown variable: " + _id);
+    }
+    llvm::Value* rhs = _expr->codegen();
+
+    llvm::Value* lh = builder.CreateLoad(lhs, _id);
+    llvm::Value* res = builder.CreateSub(lh, rhs);
+
+    builder.CreateStore(res, lhs);
+}
+
+void TimesAssignStatement::codegen() {
+    llvm::Value* lhs = named_values[_id];
+    if (lhs == nullptr) {
+        yyerror("Unknown variable: " + _id);
+    }
+    llvm::Value* rhs = _expr->codegen();
+
+    llvm::Value* lh = builder.CreateLoad(lhs, _id);
+    llvm::Value* res = builder.CreateMul(lh, rhs);
+
+    builder.CreateStore(res, lhs);
+}
+
+void DivAssignStatement::codegen() {
+    llvm::Value* lhs = named_values[_id];
+    if (lhs == nullptr) {
+        yyerror("Unknown variable: " + _id);
+    }
+    llvm::Value* rhs = _expr->codegen();
+
+    llvm::Value* lh = builder.CreateLoad(lhs, _id);
+    llvm::Value* res = builder.CreateUDiv(lh, rhs);
+
+    builder.CreateStore(res, lhs);
+}
+
+void ModAssignStatement::codegen() {
+    llvm::Value* lhs = named_values[_id];
+    if (lhs == nullptr) {
+        yyerror("Unknown variable: " + _id);
+    }
+    llvm::Value* rhs = _expr->codegen();
+
+    llvm::Value* lh = builder.CreateLoad(lhs, _id);
+    llvm::Value* res = builder.CreateURem(lh, rhs);
+
+    builder.CreateStore(res, lhs);
+}
 
 void VarDeclarationStatement::codegen() {
     llvm::Type* llvm_type = type_to_llvm_type(_type);
@@ -139,4 +205,22 @@ void IfElseStatement::codegen() {
 
     function->getBasicBlockList().push_back(merge_block);
     builder.SetInsertPoint(merge_block);
+}
+
+void PrintStatement::codegen() {
+    llvm::Value *l = _e->codegen();
+    if(l == nullptr)
+        return;
+
+    llvm::FunctionType *FT1 =
+            llvm::FunctionType::get(llvm::IntegerType::getInt32Ty(context),
+                    llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0), true);
+    PrintFja = llvm::Function::Create(FT1, llvm::Function::ExternalLinkage, "printf", module);
+
+    Str = builder.CreateGlobalStringPtr("%u\n");
+
+    std::vector<llvm::Value*> ArgsV;
+    ArgsV.push_back(Str);
+    ArgsV.push_back(l);
+    builder.CreateCall(PrintFja, ArgsV, "println");
 }

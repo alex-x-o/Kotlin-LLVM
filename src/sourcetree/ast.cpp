@@ -63,7 +63,7 @@ llvm::Value *AddExprAST::codegen() {
     if (value_first == nullptr || value_second == nullptr) {
         yyerror("Error");
     }
-    return builder.CreateFAdd(value_first, value_second, "addtmp");
+    return builder.CreateAdd(value_first, value_second, "addtmp");
 }
 
 llvm::Value *SubExprAST::codegen() {

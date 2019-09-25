@@ -112,6 +112,71 @@ private:
     ExprAST* _expr;
 };
 
+class PlusAssignStatement : public Statement {
+public:
+    PlusAssignStatement(std::string id, ExprAST* expr) : _id(std::move(id)), _expr(expr) {};
+    void codegen() override;
+
+    ~PlusAssignStatement() override {
+        delete _expr;
+    }
+private:
+    std::string _id;
+    ExprAST* _expr;
+};
+
+class MinusAssignStatement : public Statement {
+public:
+    MinusAssignStatement(std::string id, ExprAST* expr) : _id(std::move(id)), _expr(expr) {};
+    void codegen() override;
+
+    ~MinusAssignStatement() override {
+        delete _expr;
+    }
+private:
+    std::string _id;
+    ExprAST* _expr;
+};
+
+class TimesAssignStatement : public Statement {
+public:
+    TimesAssignStatement(std::string id, ExprAST* expr) : _id(std::move(id)), _expr(expr) {};
+    void codegen() override;
+
+    ~TimesAssignStatement() override {
+        delete _expr;
+    }
+private:
+    std::string _id;
+    ExprAST* _expr;
+};
+
+class DivAssignStatement : public Statement {
+public:
+    DivAssignStatement(std::string id, ExprAST* expr) : _id(std::move(id)), _expr(expr) {};
+    void codegen() override;
+
+    ~DivAssignStatement() override {
+        delete _expr;
+    }
+private:
+    std::string _id;
+    ExprAST* _expr;
+};
+
+class ModAssignStatement : public Statement {
+public:
+    ModAssignStatement(std::string id, ExprAST* expr) : _id(std::move(id)), _expr(expr) {};
+    void codegen() override;
+
+    ~ModAssignStatement() override {
+        delete _expr;
+    }
+private:
+    std::string _id;
+    ExprAST* _expr;
+};
+
 class DeclareAndAssignStatement : public Statement {
 public:
     DeclareAndAssignStatement(VarDeclarationStatement* decl_statement, AssignStatement* assign_statement)
@@ -146,6 +211,20 @@ private:
     ExprAST* _cond;
     std::vector<Statement*>* _then_stat;
     std::vector<Statement*>* _else_stat;
+};
+
+class PrintStatement : public Statement {
+public:
+    PrintStatement(ExprAST* e)
+    : _e(e) {}
+    void codegen() override;
+
+    ~PrintStatement() override {
+        delete _e;
+    }
+
+private:
+    ExprAST* _e;
 };
 
 #endif //KOTLIN_LLVM_STATEMENT_HPP

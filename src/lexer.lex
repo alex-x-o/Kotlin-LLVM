@@ -21,9 +21,15 @@
 "return" return return_token;
 "if" return if_token;
 "else" return else_token;
+"println" return print_token;
 [\.\.] return range_token;
 "<=" return le_token;
 ">=" return ge_token;
+"+=" return pa_token;
+"-=" return ma_token;
+"*=" return ta_token;
+"/=" return da_token;
+"%=" return moda_token;
 "true" {
     yylval.boolean_value = true;
     return boolean_token;

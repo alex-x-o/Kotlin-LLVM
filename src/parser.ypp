@@ -49,7 +49,8 @@ extern int yylex();
 %left '+' '-'
 %left '*' '/' '%' range_token
 
-%token val_token var_token fun_token external_token return_token if_token else_token range_token
+%token val_token var_token fun_token external_token return_token if_token else_token
+%token range_token pa_token ma_token ta_token da_token moda_token print_token
 %token int_type_token double_type_token string_type_token
 %token <string_value> id_token
 %token <int_value> int_token
@@ -95,7 +96,10 @@ Block: '{' StatementList '}' {
 }
 
 Statement:
-    VarDeclarationStatement {
+    print_token E {
+      $$ = new PrintStatement($2);
+    }
+    | VarDeclarationStatement {
       $$ = $1;
     }
     | AssignStatement {
@@ -137,6 +141,26 @@ VarDeclarationStatement: var_token id_token ':' Type {
 
 AssignStatement: id_token '=' E {
     $$ = new AssignStatement(*$1, $3);
+    delete $1;
+}
+| id_token pa_token E {
+    $$ = new PlusAssignStatement(*$1, $3);
+    delete $1;
+}
+| id_token ma_token E {
+    $$ = new MinusAssignStatement(*$1, $3);
+    delete $1;
+}
+| id_token ta_token E {
+    $$ = new TimesAssignStatement(*$1, $3);
+    delete $1;
+}
+| id_token da_token E {
+    $$ = new DivAssignStatement(*$1, $3);
+    delete $1;
+}
+| id_token moda_token E {
+    $$ = new ModAssignStatement(*$1, $3);
     delete $1;
 }
 
@@ -266,7 +290,8 @@ Type: int_type_token {
     }
     | double_type_token {
         $$ = DOUBLE;
-    } | string_type_token {
+    }
+    | string_type_token {
         $$ = STRING;
     };
 
@@ -278,9 +303,11 @@ llvm::Module* module;
 std::map<std::string, llvm::AllocaInst*> named_values;
 
 int main() {
-    yyin = fopen("../test3.kt", "r");
+    yyin = fopen("../test4.kt", "r");
     module = new llvm::Module("My module", context);
+
     yyparse();
+
     module->print(llvm::outs(), nullptr);
     delete module;
     return 0;
