@@ -52,94 +52,216 @@ llvm::Value *VarExprAST::codegen() {
     return builder.CreateLoad(value, _id);
 }
 
+UnaryExprAST::~UnaryExprAST() {
+    delete _first;
+}
+
+llvm::Value *InvExprAST::codegen() {
+    llvm::Value *value_first = _first->codegen();
+    if (value_first == nullptr) {
+        yyerror("Error");
+    }
+    return builder.CreateNot(value_first, "invtmp");
+}
+
+llvm::Value *NotLExprAST::codegen() {
+    llvm::Value *value_first = _first->codegen();
+    if (value_first == nullptr) {
+        yyerror("Error");
+    }
+    return llvm::ConstantInt::get(context, llvm::APInt(1, value_first ? 0 : 1));
+}
+
 BinaryExprAST::~BinaryExprAST() {
-    delete first;
-    delete second;
+    delete _first;
+    delete _second;
 }
 
 llvm::Value *AddExprAST::codegen() {
-    llvm::Value *value_first = first->codegen();
-    llvm::Value *value_second = second->codegen();
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
     if (value_first == nullptr || value_second == nullptr) {
         yyerror("Error");
     }
-    return builder.CreateAdd(value_first, value_second, "addtmp");
+    else if(value_first->getType() == llvm::Type::getInt32Ty(context) &&
+    value_second->getType() == llvm::Type::getInt32Ty(context))
+        return builder.CreateAdd(value_first, value_second, "addtmp");
+    else
+        return builder.CreateFAdd(value_first, value_second, "addtmp");
 }
 
 llvm::Value *SubExprAST::codegen() {
-    llvm::Value *value_first = first->codegen();
-    llvm::Value *value_second = second->codegen();
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
     if (value_first == nullptr || value_second == nullptr) {
         yyerror("Error");
     }
-    return builder.CreateFSub(value_first, value_second, "subtmp");
+    else if(value_first->getType() == llvm::Type::getInt32Ty(context) &&
+            value_second->getType() == llvm::Type::getInt32Ty(context))
+        return builder.CreateSub(value_first, value_second, "subtmp");
+    else
+        return builder.CreateFSub(value_first, value_second, "subtmp");
 }
 
 llvm::Value *MulExprAST::codegen() {
-    llvm::Value *value_first = first->codegen();
-    llvm::Value *value_second = second->codegen();
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
     if (value_first == nullptr || value_second == nullptr) {
         yyerror("Error");
     }
-    return builder.CreateFMul(value_first, value_second, "multmp");
+    else if(value_first->getType() == llvm::Type::getInt32Ty(context) &&
+            value_second->getType() == llvm::Type::getInt32Ty(context))
+        return builder.CreateMul(value_first, value_second, "multmp");
+    else
+        return builder.CreateFMul(value_first, value_second, "subtmp");
 }
 
 llvm::Value *DivExprAST::codegen() {
-    llvm::Value *value_first = first->codegen();
-    llvm::Value *value_second = second->codegen();
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
     if (value_first == nullptr || value_second == nullptr) {
         yyerror("Error");
     }
-    return builder.CreateFDiv(value_first, value_second, "divtmp");
+    else if(value_first->getType() == llvm::Type::getInt32Ty(context) &&
+            value_second->getType() == llvm::Type::getInt32Ty(context))
+        return builder.CreateSDiv(value_first, value_second, "divtmp");
+    else
+        return builder.CreateFAdd(value_first, value_second, "divtmp");
 }
 
 llvm::Value *ModExprAST::codegen() {
-    llvm::Value *value_first = first->codegen();
-    llvm::Value *value_second = second->codegen();
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
     if (value_first == nullptr || value_second == nullptr) {
         yyerror("Error");
     }
-    return builder.CreateSRem(value_first, value_second, "modtmp");
+    else if(value_first->getType() == llvm::Type::getInt32Ty(context) &&
+            value_second->getType() == llvm::Type::getInt32Ty(context))
+        return builder.CreateSRem(value_first, value_second, "modtmp");
+    else
+        return builder.CreateFRem(value_first, value_second, "modtmp");
 }
 
 llvm::Value *LessExprAST::codegen() {
-    llvm::Value *value_first = first->codegen();
-    llvm::Value *value_second = second->codegen();
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
     if (value_first == nullptr || value_second == nullptr) {
         yyerror("Error");
     }
-    return builder.CreateICmpSLT(value_first, value_second, "modtmp");
+    return builder.CreateICmpSLT(value_first, value_second, "lesstmp");
 }
 
 llvm::Value *GrtExprAST::codegen() {
-    llvm::Value *value_first = first->codegen();
-    llvm::Value *value_second = second->codegen();
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
     if (value_first == nullptr || value_second == nullptr) {
         yyerror("Error");
     }
-    return builder.CreateICmpSGT(value_first, value_second, "modtmp");
+    return builder.CreateICmpSGT(value_first, value_second, "grttmp");
 }
 
 llvm::Value *LEExprAST::codegen() {
-    llvm::Value *value_first = first->codegen();
-    llvm::Value *value_second = second->codegen();
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
     if (value_first == nullptr || value_second == nullptr) {
         yyerror("Error");
     }
-    return builder.CreateICmpSLE(value_first, value_second, "modtmp");
+    return builder.CreateICmpSLE(value_first, value_second, "leetmp");
 }
 
 llvm::Value *GEExprAST::codegen() {
-    llvm::Value *value_first = first->codegen();
-    llvm::Value *value_second = second->codegen();
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
     if (value_first == nullptr || value_second == nullptr) {
         yyerror("Error");
     }
-    return builder.CreateICmpSGE(value_first, value_second, "modtmp");
+    return builder.CreateICmpSGE(value_first, value_second, "geetmp");
+}
+
+llvm::Value *AndExprAST::codegen() {
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
+    if (value_first == nullptr || value_second == nullptr) {
+        yyerror("Error");
+    }
+    return builder.CreateAnd(value_first, value_second, "andtmp");
+}
+
+llvm::Value *OrExprAST::codegen() {
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
+    if (value_first == nullptr || value_second == nullptr) {
+        yyerror("Error");
+    }
+    return builder.CreateOr(value_first, value_second, "ortmp");
+}
+
+llvm::Value *XorExprAST::codegen() {
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
+    if (value_first == nullptr || value_second == nullptr) {
+        yyerror("Error");
+    }
+    return builder.CreateXor(value_first, value_second, "xortmp");
+}
+
+llvm::Value *ShlExprAST::codegen() {
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
+    if (value_first == nullptr || value_second == nullptr) {
+        yyerror("Error");
+    }
+    return builder.CreateShl(value_first, value_second, "shltmp");
+}
+
+llvm::Value *ShrExprAST::codegen() {
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
+    if (value_first == nullptr || value_second == nullptr) {
+        yyerror("Error");
+    }
+    return builder.CreateLShr(value_first, value_second, "shrtmp");
+}
+
+llvm::Value *AndLExprAST::codegen() {
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
+    if (value_first == nullptr || value_second == nullptr) {
+        yyerror("Error");
+    }
+    else if (value_first->getType() != llvm::Type::getInt1Ty(context)
+        || value_second->getType() != llvm::Type::getInt1Ty(context)) {
+            yyerror("Must be boolean");
+    }
+    //TODO: Prepraviti
+    llvm::Value *lhs = llvm::ConstantInt::get(context, llvm::APInt(1, value_first ? 1 : 0));
+    llvm::Value *rhs = llvm::ConstantInt::get(context, llvm::APInt(1, value_second ? 1 : 0));
+    if(lhs && rhs)
+        return llvm::ConstantInt::get(context, llvm::APInt(1, 1));
+    else
+        return llvm::ConstantInt::get(context, llvm::APInt(1, 0));
+}
+
+llvm::Value *OrLExprAST::codegen() {
+    llvm::Value *value_first = _first->codegen();
+    llvm::Value *value_second = _second->codegen();
+    if (value_first == nullptr || value_second == nullptr) {
+        yyerror("Error");
+    }
+    else if (value_first->getType() != llvm::Type::getInt1Ty(context)
+        || value_second->getType() != llvm::Type::getInt1Ty(context)) {
+        yyerror("Must be boolean");
+    }
+    //TODO: Prepraviti
+    llvm::Value *lhs = builder.CreateICmpEQ(value_first, llvm::ConstantInt::get(context, llvm::APInt(8, 1)), "ifcondl");
+    llvm::Value *rhs = builder.CreateICmpEQ(value_first, llvm::ConstantInt::get(context, llvm::APInt(8, 1)), "ifcondl");
+    if(lhs && rhs)
+        return llvm::ConstantInt::get(context, llvm::APInt(1, 0));
+    else
+        return llvm::ConstantInt::get(context, llvm::APInt(1, 1));
 }
 
 llvm::Value *CallExprAST::codegen() {
-
     llvm::Function *callee_function = module->getFunction(_callee_id);
     if (callee_function == nullptr) {
         yyerror("Function " + _callee_id + " doesn't exist");

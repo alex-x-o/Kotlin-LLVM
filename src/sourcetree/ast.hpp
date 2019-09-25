@@ -76,12 +76,34 @@ private:
     std::string _id;
 };
 
+class UnaryExprAST : public ExprAST {
+public:
+    UnaryExprAST(ExprAST* first)
+            : _first(first) {};
+    ~UnaryExprAST() override;
+protected:
+    ExprAST *_first;
+};
+
+class InvExprAST : public UnaryExprAST {
+public:
+    InvExprAST(ExprAST* first) : UnaryExprAST(first) {};
+    llvm::Value* codegen() override;
+};
+
+class NotLExprAST : public UnaryExprAST {
+public:
+    NotLExprAST(ExprAST* first) : UnaryExprAST(first) {};
+    llvm::Value* codegen() override;
+};
+
 class BinaryExprAST : public ExprAST {
 public:
-    BinaryExprAST(ExprAST* first, ExprAST* second) : first(first), second(second) {};
+    BinaryExprAST(ExprAST* first, ExprAST* second)
+    : _first(first), _second(second) {};
     ~BinaryExprAST() override;
 protected:
-    ExprAST *first, *second;
+    ExprAST *_first, *_second;
 };
 
 class AddExprAST : public BinaryExprAST {
@@ -135,6 +157,48 @@ public:
 class GEExprAST : public BinaryExprAST {
 public:
     GEExprAST(ExprAST* first, ExprAST* second) : BinaryExprAST(first, second) {};
+    llvm::Value* codegen() override;
+};
+
+class AndExprAST : public BinaryExprAST {
+public:
+    AndExprAST(ExprAST* first, ExprAST* second) : BinaryExprAST(first, second) {};
+    llvm::Value* codegen() override;
+};
+
+class OrExprAST : public BinaryExprAST {
+public:
+    OrExprAST(ExprAST* first, ExprAST* second) : BinaryExprAST(first, second) {};
+    llvm::Value* codegen() override;
+};
+
+class XorExprAST : public BinaryExprAST {
+public:
+    XorExprAST(ExprAST* first, ExprAST* second) : BinaryExprAST(first, second) {};
+    llvm::Value* codegen() override;
+};
+
+class ShlExprAST : public BinaryExprAST {
+public:
+    ShlExprAST(ExprAST* first, ExprAST* second) : BinaryExprAST(first, second) {};
+    llvm::Value* codegen() override;
+};
+
+class ShrExprAST : public BinaryExprAST {
+public:
+    ShrExprAST(ExprAST* first, ExprAST* second) : BinaryExprAST(first, second) {};
+    llvm::Value* codegen() override;
+};
+
+class AndLExprAST : public BinaryExprAST {
+public:
+    AndLExprAST(ExprAST* first, ExprAST* second) : BinaryExprAST(first, second) {};
+    llvm::Value* codegen() override;
+};
+
+class OrLExprAST : public BinaryExprAST {
+public:
+    OrLExprAST(ExprAST* first, ExprAST* second) : BinaryExprAST(first, second) {};
     llvm::Value* codegen() override;
 };
 

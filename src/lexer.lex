@@ -30,6 +30,15 @@
 "*=" return ta_token;
 "/=" return da_token;
 "%=" return moda_token;
+"&&" return andl_token;
+"||" return orl_token;
+"!" return notl_token;
+"shl" return shl_token;
+"shr" return shr_token;
+"and" return and_token;
+"or" return or_token;
+"xor" return xor_token;
+"inv" return inv_token;
 "true" {
     yylval.boolean_value = true;
     return boolean_token;
