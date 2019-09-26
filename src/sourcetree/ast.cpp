@@ -233,7 +233,7 @@ llvm::Value *AndLExprAST::codegen() {
         || value_second->getType() != llvm::Type::getInt1Ty(context)) {
             yyerror("Must be boolean");
     }
-    //TODO: Prepraviti
+    // TODO Prepraviti
     llvm::Value *lhs = llvm::ConstantInt::get(context, llvm::APInt(1, value_first ? 1 : 0));
     llvm::Value *rhs = llvm::ConstantInt::get(context, llvm::APInt(1, value_second ? 1 : 0));
     if(lhs && rhs)
@@ -252,7 +252,7 @@ llvm::Value *OrLExprAST::codegen() {
         || value_second->getType() != llvm::Type::getInt1Ty(context)) {
         yyerror("Must be boolean");
     }
-    //TODO: Prepraviti
+    // TODO Prepraviti
     llvm::Value *lhs = builder.CreateICmpEQ(value_first, llvm::ConstantInt::get(context, llvm::APInt(8, 1)), "ifcondl");
     llvm::Value *rhs = builder.CreateICmpEQ(value_first, llvm::ConstantInt::get(context, llvm::APInt(8, 1)), "ifcondl");
     if(lhs && rhs)

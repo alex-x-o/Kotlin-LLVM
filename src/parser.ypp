@@ -61,7 +61,7 @@ extern int yylex();
 %token val_token var_token fun_token external_token return_token if_token else_token
 %token range_token pa_token ma_token ta_token da_token moda_token print_token
 %token or_token xor_token and_token shr_token shl_token inv_token
-%token orl_token andl_token notl_token
+%token orl_token andl_token notl_token do_token while_token
 %token int_type_token double_type_token string_type_token
 %token <string_value> id_token
 %token <int_value> int_token
@@ -78,7 +78,8 @@ extern int yylex();
 %type <extern_func_t> ExternalFunctionStatement
 %type <func_proto_ast_t> FunctionSignature
 %type <expr_stat_t> ExpressionStatement
-%type <statement_t> Statement DeclareAndAssignStatement AssignStatement IfElseStatement
+%type <statement_t> Statement DeclareAndAssignStatement AssignStatement
+%type <statement_t> IfElseStatement IfStatement WhileStatement
 %type <statement_vec> StatementList Block
 %type <var_decl_stat_t> VarDeclarationStatement
 
@@ -131,7 +132,13 @@ Statement:
     | return_token E {
        $$ = new ReturnStatement($2);
     }
+    | IfStatement {
+        $$ = $1;
+    }
     | IfElseStatement {
+        $$ = $1;
+    }
+    | WhileStatement {
         $$ = $1;
     }
     | {
@@ -199,8 +206,16 @@ FunctionSignature: fun_token id_token '(' ParamArray ')' ':' Type {
     delete $4;
 }
 
-IfElseStatement: if_token '(' E ')' Block else_token Block {
-    $$ = new IfElseStatement($3, $5, $7);
+IfElseStatement: if_token E Block else_token Block {
+    $$ = new IfElseStatement($2, $3, $5);
+}
+
+IfStatement: if_token E Block {
+    $$ = new IfStatement($2, $3);
+}
+
+WhileStatement: while_token E Block {
+    $$ = new WhileStatement($2, $3);
 }
 
 E:
@@ -339,10 +354,16 @@ llvm::LLVMContext context;
 llvm::IRBuilder<> builder(context);
 llvm::Module* module;
 std::map<std::string, llvm::AllocaInst*> named_values;
+llvm::Function *PrintFja;
 
 int main() {
-    yyin = fopen("../test5.kt", "r");
+    yyin = fopen("../test7.kt", "r");
     module = new llvm::Module("My module", context);
+
+    llvm::FunctionType *FT1 =
+                llvm::FunctionType::get(llvm::IntegerType::getInt32Ty(context),
+                llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0), true);
+    PrintFja = llvm::Function::Create(FT1, llvm::Function::ExternalLinkage, "printf", module);
 
     yyparse();
 

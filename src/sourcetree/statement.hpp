@@ -193,6 +193,23 @@ private:
     AssignStatement* _assign_statement;
 };
 
+class IfStatement : public Statement {
+public:
+    IfStatement(ExprAST* cond, std::vector<Statement*>* then_stat)
+            : _cond(cond), _then_stat(then_stat) {};
+    void codegen() override;
+
+    ~IfStatement() override {
+        delete _cond;
+        for(auto &i : *_then_stat)
+            delete i;
+    }
+
+private:
+    ExprAST* _cond;
+    std::vector<Statement*>* _then_stat;
+};
+
 class IfElseStatement : public Statement {
 public:
     IfElseStatement(ExprAST* cond, std::vector<Statement*>* then_stat, std::vector<Statement*>*  else_stat)
@@ -225,6 +242,23 @@ public:
 
 private:
     ExprAST* _e;
+};
+
+class WhileStatement : public Statement {
+public:
+    WhileStatement(ExprAST* cond, std::vector<Statement*>* then_stat)
+            : _cond(cond), _then_stat(then_stat) {};
+    void codegen() override;
+
+    ~WhileStatement() override {
+        delete _cond;
+        for(auto &i : *_then_stat)
+            delete i;
+    }
+
+private:
+    ExprAST* _cond;
+    std::vector<Statement*>* _then_stat;
 };
 
 #endif //KOTLIN_LLVM_STATEMENT_HPP

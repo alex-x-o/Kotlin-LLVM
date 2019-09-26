@@ -22,6 +22,8 @@
 "if" return if_token;
 "else" return else_token;
 "println" return print_token;
+"while" return while_token;
+"do" return do_token;
 [\.\.] return range_token;
 "<=" return le_token;
 ">=" return ge_token;

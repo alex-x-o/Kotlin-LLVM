@@ -11,7 +11,7 @@ extern std::map<std::string, llvm::AllocaInst*> named_values;
 extern llvm::IRBuilder<> builder;
 extern llvm::Module* module;
 llvm::Value* Str;
-llvm::Function *PrintFja;
+extern llvm::Function *PrintFja;
 
 extern void yyerror(std::string msg);
 
@@ -171,6 +171,33 @@ void DeclareAndAssignStatement::codegen() {
     _assign_statement->codegen();
 }
 
+void IfStatement::codegen() {
+    llvm::Value *cond_value = _cond->codegen();
+
+    if (cond_value->getType() != llvm::Type::getInt1Ty(context)) {
+        yyerror("The condition of the if expression must be boolean");
+    }
+
+    llvm::Function *function = builder.GetInsertBlock()->getParent();
+
+    llvm::BasicBlock *then_block = llvm::BasicBlock::Create(context, "iftrue", function);
+    llvm::BasicBlock *merge_block = llvm::BasicBlock::Create(context, "ifcont");
+
+    builder.CreateCondBr(cond_value, then_block, merge_block);
+
+    builder.SetInsertPoint(then_block);
+
+    for(auto &i: *_then_stat)
+        i->codegen();
+
+    builder.CreateBr(merge_block);
+
+    then_block = builder.GetInsertBlock();
+
+    function->getBasicBlockList().push_back(merge_block);
+    builder.SetInsertPoint(merge_block);
+}
+
 void IfElseStatement::codegen() {
     llvm::Value *cond_value = _cond->codegen();
 
@@ -212,15 +239,36 @@ void PrintStatement::codegen() {
     if(l == nullptr)
         return;
 
-    llvm::FunctionType *FT1 =
-            llvm::FunctionType::get(llvm::IntegerType::getInt32Ty(context),
-                    llvm::PointerType::get(llvm::Type::getInt8Ty(context), 0), true);
-    PrintFja = llvm::Function::Create(FT1, llvm::Function::ExternalLinkage, "printf", module);
-
     Str = builder.CreateGlobalStringPtr("%u\n");
 
     std::vector<llvm::Value*> ArgsV;
     ArgsV.push_back(Str);
     ArgsV.push_back(l);
     builder.CreateCall(PrintFja, ArgsV, "println");
+}
+
+void WhileStatement::codegen() {
+    llvm::Function* function = builder.GetInsertBlock()->getParent();
+
+    llvm::BasicBlock* loop_block = llvm::BasicBlock::Create(context, "loop", function);
+    builder.CreateBr(loop_block);
+
+    builder.SetInsertPoint(loop_block);
+    llvm::Value* stop_value = _cond->codegen();
+    if(stop_value == nullptr)
+        return;
+    else if (stop_value->getType() != llvm::Type::getInt1Ty(context)) {
+        yyerror("The condition of the if expression must be boolean");
+    }
+
+    llvm::BasicBlock* loop1_block = llvm::BasicBlock::Create(context, "loop1", function);
+    llvm::BasicBlock* after_loop_block = llvm::BasicBlock::Create(context, "afterloop", function);
+    builder.CreateCondBr(stop_value, loop1_block, after_loop_block);
+
+    builder.SetInsertPoint(loop1_block);
+    for(auto &i: *_then_stat)
+        i->codegen();
+
+    builder.CreateBr(loop_block);
+    builder.SetInsertPoint(after_loop_block);
 }
