@@ -279,7 +279,7 @@ void ForStatement::codegen() {
     llvm::BasicBlock* after_loop_block = llvm::BasicBlock::Create(context, "afterloop");
     llvm::Function* function = builder.GetInsertBlock()->getParent();
 
-    llvm::AllocaInst* alloca = create_entry_block_alloca(function, _id, function->getType());
+    llvm::AllocaInst* alloca = create_entry_block_alloca(function, _id, llvm::Type::getInt32Ty(context));
     llvm::AllocaInst* old_value = named_values[_id];
     named_values[_id] = alloca;
 
@@ -293,12 +293,59 @@ void ForStatement::codegen() {
     builder.SetInsertPoint(cond_block);
 
     llvm::Value* end_value = llvm::ConstantInt::get(context, llvm::APInt(32, _end));
-    llvm::Value* bool_tmp = builder.CreateICmpSLE(start_value, end_value, "leetmp");
-    if(bool_tmp == nullptr)
+
+    llvm::Value* bool_tmp = builder.CreateLoad(alloca, _id);
+    llvm::Value* loop_cond_value = builder.CreateICmpSLE(bool_tmp, end_value, "sle");
+
+    builder.CreateCondBr(loop_cond_value, loop_block, after_loop_block);
+
+    function->getBasicBlockList().push_back(loop_block);
+    builder.SetInsertPoint(loop_block);
+
+    for(auto &i: *_block)
+        i->codegen();
+
+    llvm::Value* inc_value = _inc->codegen();
+    if(inc_value == nullptr)
         return;
 
-    llvm::Value* loop_cond_value = builder.CreateICmpEQ(bool_tmp,
-            llvm::ConstantInt::get(context, llvm::APInt(32, 1)), "loopcond");
+    llvm::Value* tmp = builder.CreateLoad(alloca, _id);
+    llvm::Value* next_var = builder.CreateAdd(tmp, inc_value, "nextvar");
+    builder.CreateStore(next_var, alloca);
+    builder.CreateBr(cond_block);
+
+    function->getBasicBlockList().push_back(after_loop_block);
+    builder.SetInsertPoint(after_loop_block);
+
+    if(old_value != nullptr)
+        named_values[_id] = old_value;
+    else
+        named_values.erase(_id);
+}
+
+void ForUStatement::codegen() {
+    llvm::BasicBlock* cond_block = llvm::BasicBlock::Create(context, "cond");
+    llvm::BasicBlock* loop_block = llvm::BasicBlock::Create(context, "loop");
+    llvm::BasicBlock* after_loop_block = llvm::BasicBlock::Create(context, "afterloop");
+    llvm::Function* function = builder.GetInsertBlock()->getParent();
+
+    llvm::AllocaInst* alloca = create_entry_block_alloca(function, _id, llvm::Type::getInt32Ty(context));
+    llvm::AllocaInst* old_value = named_values[_id];
+    named_values[_id] = alloca;
+
+    llvm::Value* start_value = llvm::ConstantInt::get(context, llvm::APInt(32, _start));
+    if(start_value == nullptr)
+        return;
+    builder.CreateStore(start_value, alloca);
+    builder.CreateBr(cond_block);
+
+    function->getBasicBlockList().push_back(cond_block);
+    builder.SetInsertPoint(cond_block);
+
+    llvm::Value* end_value = llvm::ConstantInt::get(context, llvm::APInt(32, _end));
+
+    llvm::Value* bool_tmp = builder.CreateLoad(alloca, _id);
+    llvm::Value* loop_cond_value = builder.CreateICmpSLT(bool_tmp, end_value, "slt");
 
     builder.CreateCondBr(loop_cond_value, loop_block, after_loop_block);
 

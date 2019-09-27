@@ -20,6 +20,7 @@
 "external" return external_token;
 "return" return return_token;
 "in" return in_token;
+"until" return until_token;
 "step" return step_token;
 "if" return if_token;
 "else" return else_token;
@@ -67,7 +68,7 @@
   return int_token;
 }
 
-[0-9]+(\.[0-9]*)? {
+[0-9]+(\.[0-9]+)? {
   yylval.double_value = atof(yytext);
   return double_token;
 }

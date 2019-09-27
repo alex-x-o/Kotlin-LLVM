@@ -4,6 +4,7 @@ fun main(): String {
     var max: Int
     if (a < b) {
         max = b
+        println(a)
         a = 12
     }
     println(max)

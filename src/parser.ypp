@@ -60,7 +60,7 @@ extern int yylex();
 
 %token val_token var_token fun_token external_token return_token if_token else_token
 %token range_token pa_token ma_token ta_token da_token moda_token print_token
-%token or_token xor_token and_token shr_token shl_token inv_token
+%token or_token xor_token and_token shr_token shl_token inv_token until_token
 %token orl_token andl_token notl_token do_token while_token for_token in_token step_token
 %token int_type_token double_type_token string_type_token
 %token <string_value> id_token
@@ -79,7 +79,7 @@ extern int yylex();
 %type <func_proto_ast_t> FunctionSignature
 %type <expr_stat_t> ExpressionStatement
 %type <statement_t> Statement DeclareAndAssignStatement AssignStatement
-%type <statement_t> IfElseStatement IfStatement WhileStatement ForStatement
+%type <statement_t> IfElseStatement IfStatement WhileStatement ForStatement ForUStatement
 %type <statement_vec> StatementList Block
 %type <var_decl_stat_t> VarDeclarationStatement
 
@@ -139,6 +139,9 @@ Statement:
         $$ = $1;
     }
     | WhileStatement {
+        $$ = $1;
+    }
+    | ForUStatement {
         $$ = $1;
     }
     | ForStatement {
@@ -219,6 +222,11 @@ IfElseStatement: if_token E Block else_token Block {
 
 WhileStatement: while_token E Block {
     $$ = new WhileStatement($2, $3);
+}
+
+ForUStatement: for_token '(' id_token in_token int_token until_token int_token Step ')' Block {
+    $$ = new ForUStatement(*$3, $5, $7, $8, $10);
+    delete $3;
 }
 
 ForStatement: for_token '(' id_token in_token int_token range_token int_token Step ')' Block {
