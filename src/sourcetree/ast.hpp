@@ -39,7 +39,7 @@ public:
 class IntExprAST : public ExprAST {
 public:
     llvm::Value* codegen() override;
-    explicit IntExprAST(double value) : _value(value) {}
+    explicit IntExprAST(int value) : _value(value) {}
 private:
     int _value;
 };

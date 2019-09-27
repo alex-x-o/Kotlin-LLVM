@@ -261,4 +261,22 @@ private:
     std::vector<Statement*>* _then_stat;
 };
 
+class ForStatement : public Statement {
+public:
+    ForStatement(std::string id, int start, int end, ExprAST* inc, std::vector<Statement*>* block)
+    :_id(id), _start(start), _end(end), _inc(inc), _block(block) {};
+    void codegen() override;
+
+    ~ForStatement() override {
+        for(auto &i : *_block)
+            delete i;
+    }
+private:
+    std::string _id;
+    int _start;
+    int _end;
+    ExprAST* _inc;
+    std::vector<Statement*>* _block;
+};
+
 #endif //KOTLIN_LLVM_STATEMENT_HPP

@@ -19,12 +19,15 @@
 "fun" return fun_token;
 "external" return external_token;
 "return" return return_token;
+"in" return in_token;
+"step" return step_token;
 "if" return if_token;
 "else" return else_token;
 "println" return print_token;
 "while" return while_token;
 "do" return do_token;
-[\.\.] return range_token;
+"for" return for_token;
+".." return range_token;
 "<=" return le_token;
 ">=" return ge_token;
 "+=" return pa_token;
@@ -59,12 +62,12 @@
   return id_token;
 }
 
-[1-9][0-9]* {
+[0-9]+ {
   yylval.int_value = atoi(yytext);
   return int_token;
 }
 
-[1-9][0-9]*(\.[0-9]*)? {
+[0-9]+(\.[0-9]*)? {
   yylval.double_value = atof(yytext);
   return double_token;
 }
